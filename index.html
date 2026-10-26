@@ -476,6 +476,170 @@
     var XP = { set:10, exerciseDone:25, dayDone:60, trainer:80, weighIn:15, measures:20, photo:10, practice:30, meal:10 };
     var LEVEL_TITLES = ["Rookie","Prospect","Contender","Grinder","Workhorse","Beast Mode","All-Star","MVP","Hall of Famer","Built Different"];
 
+
+    /* =====================================================================
+       AI LAYER — the ONLY place that talks to an AI. Muse (or anything else):
+       define window.aiProvider = { json(prompt, imageDataUrl) -> Promise<object>,
+                                    text(messages[{role,content}]) -> Promise<string> }
+       before this script runs and everything below just works. Inside Claude
+       it connects automatically. With neither, scan buttons say "not connected".
+       Photos are only sent when the user taps a scan button and confirms.
+       ===================================================================== */
+    var _aiP = null, _aiTried = false, aiOK = false;
+    async function aiGet(){
+      if(window.aiProvider) return window.aiProvider;
+      if(_aiTried) return _aiP; _aiTried = true;
+      try{
+        if(window.claude && window.claude.use){
+          var s = await window.claude.use("sample");
+          if(s) _aiP = {
+            json: async function(prompt, img){ var o={cache:false}; if(img){ o.images=[await (await fetch(img)).blob()]; } return await s.json(prompt, o); },
+            text: async function(msgs){ var r = await s(msgs, {cache:false}); return r.text; }
+          };
+        }
+      }catch(e){ _aiP = null; }
+      return _aiP;
+    }
+    async function aiJSON(prompt, img){ var p = await aiGet(); if(!p) throw new Error("AI isn\u2019t connected yet (see AI LAYER in the code)."); return await p.json(prompt, img); }
+    async function aiText(msgs){ var p = await aiGet(); if(!p) throw new Error("AI isn\u2019t connected yet (see AI LAYER in the code)."); return await p.text(msgs); }
+    function aiAge(){ return (state && state.profile && state.profile.age) || null; }
+    function isAdult(){ var a = aiAge(); return !!a && a >= 18; }
+    var KIDP = 'You are a friendly coach reviewing a progress photo from a young athlete. Do NOT grade, rate or comment on body shape, size, weight, muscle, leanness or appearance in any way. Only comment on posture and stance, and on whether the photo is good for comparing later (same spot, lighting, framing). Reply ONLY with JSON: {"valid":boolean,"summary":"one short encouraging sentence","strengths":[posture positives],"focus":[photo or posture tips]}. If no person is clearly shown, set valid false and explain in summary.';
+    var aiConsented = {};
+    function aiConsent(key, what){
+      if(aiConsented[key]) return true;
+      if(!confirm(what + "\n\nTap OK to continue.")) return false;
+      aiConsented[key] = true; return true;
+    }
+    function num(v){ v = Math.round(+v); return isFinite(v) && v >= 0 ? v : 0; }
+
+    /* ---------------- AI food scan (ages 18+, calories on) ---------------- */
+    var mealScanResult = null, mealScanStatus = "";
+    function mealScanHTML(){
+      if(!mealPhotoData || !caloriesVisible()) return "";
+      var h = '<div class="btn-row"><button class="btn secondary" type="button" id="mealScan">Estimate macros from photo</button></div>';
+      if(mealScanStatus) h += '<p class="muted small" style="margin-top:6px">'+esc(mealScanStatus)+'</p>';
+      if(mealScanResult){
+        var r = mealScanResult;
+        h += '<div style="margin-top:8px;padding:10px;border:1px solid var(--line);border-radius:12px"><b>'+esc(r.name)+'</b>'+
+          '<div class="small" style="margin-top:4px">~'+r.kcal+' kcal \u00b7 Protein '+r.p+' g \u00b7 Carbs '+r.c+' g \u00b7 Fat '+r.f+' g</div>'+
+          '<div class="muted small" style="margin-top:4px">'+esc(r.note||"")+' Estimate only \u2014 photos can\u2019t see oils, sauces or exact portions. Edit anything that looks off before you log.</div></div>';
+      }
+      return h;
+    }
+    function bindMealScan(){
+      var b = document.getElementById("mealScan"); if(!b) return;
+      b.addEventListener("click", async function(){
+        if(!aiConsent("food","This meal photo will be sent to an AI service to estimate calories and macros.")) return;
+        b.disabled = true; mealScanStatus = "Scanning\u2026"; renderProgress();
+        try{
+          var r = await aiJSON('Look at this meal photo and estimate nutrition for the portion shown. Reply ONLY with JSON: {"name":"short meal name","kcal":number,"p":number,"c":number,"f":number,"note":"one short sentence on what you assumed"}. p, c, f are grams. If there is no food, return {"name":"","kcal":0,"p":0,"c":0,"f":0,"note":"No food found."}.', mealPhotoData);
+          mealScanResult = { name:String(r.name||"").slice(0,60), kcal:num(r.kcal), p:num(r.p), c:num(r.c), f:num(r.f), note:String(r.note||"") };
+          mealScanStatus = mealScanResult.name ? "Done \u2014 the name and calories are filled in below." : "No food found in that photo.";
+        }catch(e){ mealScanStatus = "Scan failed: "+(e.message||"try again"); }
+        renderProgress();
+      });
+    }
+
+    /* ---------------- AI physique read (ages 18+ only) ---------------- */
+    var physScanResult = null, physScanStatus = "";
+    function physiqueScanHTML(){
+      var h = '<h2 class="sect-title">AI Physique Read</h2><div class="card" style="margin-top:10px">';
+      h += isAdult() ? '<p class="muted small">Attach a check-in photo above, then tap scan for a general visual read with grades by area. It never guesses body fat or weight and isn\u2019t a health judgment. Lighting, pose and pump change a lot, so use it as one data point.</p>' : '<p class="muted small">Attach a check-in photo above, then tap scan for friendly posture and photo tips. For under-18s (or when age isn\u2019t set) there are no grades or comments on how your body looks \u2014 your Physique Rating comes from training, strength and measurements.</p>';
+      if(checkinPhotoData) h += '<div class="btn-row"><button class="btn secondary" type="button" id="physScan">Scan this photo</button></div>';
+      else h += '<p class="small" style="margin-top:8px">Attach a check-in photo first.</p>';
+      if(physScanStatus) h += '<p class="muted small" style="margin-top:6px">'+esc(physScanStatus)+'</p>';
+      var r = physScanResult;
+      if(r && r.kid){
+        h += '<p class="small" style="margin-top:10px">'+esc(r.summary)+'</p><p class="small"><b>Looking good:</b> '+r.strengths.map(esc).join(" \u00b7 ")+'</p><p class="small"><b>Tips:</b> '+r.focus.map(esc).join(" \u00b7 ")+'</p>';
+      } else if(r){
+        h += '<div style="margin-top:10px"><div style="font-size:44px;font-weight:800;color:var(--volt);line-height:1">'+esc(r.overall)+'</div><div class="small">'+esc(r.summary)+'</div></div>'+
+          Object.keys(r.grades).map(function(k){ return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid var(--line)"><span>'+esc(k)+'</span><b>'+esc(r.grades[k])+'</b></div>'; }).join("")+
+          '<p class="small" style="margin-top:8px"><b>Strengths:</b> '+r.strengths.map(esc).join(" \u00b7 ")+'</p><p class="small"><b>Bring up:</b> '+r.focus.map(esc).join(" \u00b7 ")+'</p>';
+      }
+      var hist = (state.aiScans||[]).slice(-5).reverse();
+      if(hist.length) h += '<p class="muted small" style="margin-top:10px">Past reads: '+hist.map(function(s){ return esc(prettyDate(s.date))+" \u2014 "+esc(s.overall); }).join(" \u00b7 ")+'</p>';
+      return h+'</div>';
+    }
+    function bindPhysiqueScan(){
+      var b = document.getElementById("physScan"); if(!b) return;
+      b.addEventListener("click", async function(){
+        if(!aiConsent("phys","This photo will be sent to an AI service for a visual physique read.")) return;
+        b.disabled = true; physScanStatus = "Scanning\u2026"; renderProgress();
+        try{
+          var kid = !isAdult(); var r = await aiJSON(kid ? KIDP : 'You are a supportive strength coach giving a general visual read of this physique photo for training purposes. Do NOT estimate body fat or weight and do not judge health. Reply ONLY with JSON: {"valid":boolean,"overall":"letter grade A+ to D","summary":"one short sentence","grades":{"Shoulders & arms":"letter","Chest & back":"letter","Core":"letter","Legs":"letter","Symmetry":"letter"},"strengths":[string],"focus":[string]}. If the photo does not clearly show a physique, set valid false and explain in summary. Be honest and encouraging.', checkinPhotoData);
+          if(!r.valid){ physScanResult = null; physScanStatus = r.summary || "Couldn\u2019t read that photo \u2014 try a clearer one."; }
+          else if(kid){
+            physScanResult = { kid:true, summary:String(r.summary||""), strengths:(r.strengths||[]).map(String).slice(0,3), focus:(r.focus||[]).map(String).slice(0,3) };
+            physScanStatus = "Posture and photo tips only.";
+          }
+          else {
+            var g = {}; Object.keys(r.grades||{}).forEach(function(k){ g[String(k).slice(0,30)] = String(r.grades[k]).slice(0,3); });
+            physScanResult = { overall:String(r.overall||"").slice(0,3), summary:String(r.summary||""), grades:g, strengths:(r.strengths||[]).map(String).slice(0,4), focus:(r.focus||[]).map(String).slice(0,4) };
+            physScanStatus = "Visual estimate only.";
+            state.aiScans = (state.aiScans||[]).concat([{ date:todayKey(), overall:physScanResult.overall }]).slice(-30); save();
+          }
+        }catch(e){ physScanStatus = "Scan failed: "+(e.message||"try again"); }
+        renderProgress();
+      });
+    }
+
+    /* ---------------- live AI coach chat ---------------- */
+
+    /* ---------------- performance grades (all ages; from logged effort, never appearance) ---------------- */
+    function letterFor(pct){
+      if(!(pct>0)) return "\u2014";
+      var t=[[93,"A"],[90,"A-"],[87,"B+"],[83,"B"],[80,"B-"],[77,"C+"],[73,"C"],[70,"C-"],[60,"D"]];
+      for(var i=0;i<t.length;i++){ if(pct>=t[i][0]) return t[i][1]; } return "D";
+    }
+    function perfGradesHTML(){
+      var r = computePhysiqueRating(), prac = practicesThisWeek().length;
+      var rows = [
+        ["Consistency", Math.round(r.parts.training/40*100), r.drivers.training],
+        ["Strength gains", Math.round(r.parts.strength/30*100), r.drivers.strength],
+        ["Sport practice", Math.min(100, Math.round(prac/3*100)), prac+" practice"+(prac===1?"":"s")+" logged this week (3 = full marks)"]
+      ];
+      var live = rows.filter(function(x){ return x[1]>0; });
+      var avg = live.length ? Math.round(live.reduce(function(a,x){ return a+x[1]; },0)/live.length) : 0;
+      return '<h2 class="sect-title">Performance Grades</h2><div class="card" style="margin-top:10px">'+
+        '<div style="display:flex;gap:14px;align-items:center"><div style="font-size:44px;font-weight:800;color:var(--volt);line-height:1">'+(avg>0?avg:'\u2014')+'<span style="font-size:16px;font-weight:600"> / 100</span><div style="font-size:18px">'+letterFor(avg)+'</div></div><div class="small">Overall effort grade. It comes from what you <b>do</b> \u2014 showing up, lifting more, practicing \u2014 never from how you look.</div></div>'+
+        rows.map(function(x){ return '<div style="padding:8px 0;border-top:1px solid var(--line);margin-top:8px"><div style="display:flex;justify-content:space-between"><span>'+esc(x[0])+'</span><b>'+(x[1]>0?x[1]+' / 100 \u00b7 ':'')+letterFor(x[1])+'</b></div><div class="muted small">'+esc(x[2])+'</div></div>'; }).join("")+
+        '</div>';
+    }
+    var coachMsgs = [], coachBusy = false;
+    function coachAskHTML(){
+      var h = '<div class="card" style="margin-top:12px"><div style="font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)">Ask the Coach \u00b7 live AI</div>';
+      coachMsgs.forEach(function(m){ h += '<div class="chat-row"><div class="chat-av" '+(m.role==="user"?'style="visibility:hidden"':"")+' aria-hidden="true">AI</div><div class="bubble" style="white-space:pre-wrap">'+esc(m.content)+'</div></div>'; });
+      h += '<div style="display:flex;gap:10px;margin-top:10px"><input class="text-in" id="coachQ" type="text" maxlength="300" placeholder="Ask about training, food, recovery\u2026"><button class="btn secondary" type="button" id="coachSend" style="width:auto;flex:none;padding:12px 16px;min-height:48px"'+(coachBusy?" disabled":"")+'>Send</button></div>'+
+        '<p class="muted small" style="margin-top:8px">Sends your question plus a short summary of your logs (no photos, no name) to an AI service. General guidance, not medical advice.</p></div>';
+      return h;
+    }
+    function coachContext(){
+      var tk = todayKey(), a = aiAge();
+      var meals = mealsOn(tk), kc = caloriesVisible() ? dayCalories(tk) : null;
+      var r = computePhysiqueRating();
+      return "Age: "+(a?(a<18?"under 18 (teen)":"18+"):"unknown")+". Goals: "+(goalLabels().join(", ")||"none set")+". Workout streak: "+currentStreak()+". Workouts done: "+totalWorkouts()+". "+
+        "Today's plan: "+(planFor(new Date())||"rest")+" ("+(dayComplete(tk)?"done":"not done")+"). Meals logged today: "+meals.length+(kc!=null?", "+kc+" kcal":"")+". Physique rating: "+r.score+"/100 ("+r.tier+").";
+    }
+    var COACH_SYS = "You are a supportive, practical strength and nutrition coach inside a workout app. Keep replies under 120 words, concrete and encouraging. Never recommend crash diets, skipping meals, or calorie targets for anyone under 18; never judge anyone's body. If something hurts (sharp pain), tell them to stop and tell a parent, trainer or doctor. For medical questions, suggest a professional.";
+    function bindCoachAsk(){
+      var q = document.getElementById("coachQ"), b = document.getElementById("coachSend"); if(!q || !b) return;
+      async function send(){
+        var t = q.value.trim(); if(!t || coachBusy) return;
+        if(!aiConsent("chat","Your question and a short summary of your logs (no photos or name) will be sent to an AI service.")) return;
+        coachMsgs.push({role:"user", content:t}); coachBusy = true; renderCoach();
+        try{
+          var msgs = coachMsgs.slice(-8).map(function(m){ return {role:m.role, content:m.content}; });
+          while(msgs.length && msgs[0].role !== "user") msgs.shift();
+          msgs[0] = {role:"user", content: COACH_SYS+"\n\nUser data: "+coachContext()+"\n\n"+msgs[0].content};
+          coachMsgs.push({role:"assistant", content: await aiText(msgs)});
+        }catch(e){ coachMsgs.push({role:"assistant", content:"Couldn\u2019t reach the AI: "+(e.message||"try again")}); }
+        coachBusy = false; renderCoach();
+      }
+      b.addEventListener("click", send);
+      q.addEventListener("keydown", function(e){ if(e.key==="Enter") send(); });
+    }
+
     /* ---------------- storage ---------------- */
     var LS_KEY = "gymtracker.v1";
     var state = loadState();
@@ -485,6 +649,7 @@
     var activeTab = "quest";
     var compareIds = { a:null, b:null };
     var mealPhotoData = null;   // pending meal photo (data URI) waiting to be logged
+    var checkinPhotoData = null; // pending physique check-in photo (data URI) waiting to be saved
     var mealTagsSel = [];       // fuel tags currently toggled in the meal form
     var FUEL_TAGS = ["Pre-workout","Post-workout","Protein-rich","Carb fuel","Snack","Team meal"];
     var SPORT_PRESETS = ["Basketball","Football","Soccer","Track","Baseball","Softball","Swimming","Volleyball","Tennis","Lacrosse"];
@@ -520,6 +685,28 @@
         if(s.profile){
           // New profile fields start empty on older profiles — existing data is never backfilled or removed.
           s.profile.positions = cleanStringList(s.profile.positions);
+          // Physique Rating goal band: normalize, never drop. Older saves can hold
+          // the band with string values ("87") or swapped ends; the strict
+          // typeof check in physiqueGoal() used to reject those and the band
+          // looked reset even though the data was right there. Coerce + clamp
+          // + order here so a saved band always survives the reload.
+          if(s.profile.physiqueGoal && typeof s.profile.physiqueGoal === "object"){
+            var pgLo = parseInt(s.profile.physiqueGoal.lo, 10);
+            var pgHi = parseInt(s.profile.physiqueGoal.hi, 10);
+            if(isNaN(pgLo) || isNaN(pgHi)){
+              s.profile.physiqueGoal = null;
+            } else {
+              pgLo = Math.max(0, Math.min(100, pgLo));
+              pgHi = Math.max(0, Math.min(100, pgHi));
+              if(pgLo > pgHi){ var pgT = pgLo; pgLo = pgHi; pgHi = pgT; }
+              s.profile.physiqueGoal = { lo: pgLo, hi: pgHi };
+            }
+          } else {
+            s.profile.physiqueGoal = null;
+          }
+          // Desired weight (separate from the rating goal band): a plain number or nothing.
+          var dwV = parseFloat(s.profile.desiredWeight);
+          s.profile.desiredWeight = (!isNaN(dwV) && dwV>=40 && dwV<=600) ? Math.round(dwV*10)/10 : null;
         }
         if(s.schedule && typeof s.schedule === "object"){
           var ns = {};
@@ -1021,7 +1208,7 @@
     function physiqueJourneyHTML(r){
       var hist = (state.physiqueHistory || []).slice().sort(function(a,b){ return a.date<b.date?-1:1; });
       var g = physiqueGoal();
-      var goalTxt = g ? (' · Goal: '+g.lo+'–'+g.hi+(r.score < g.lo ? ' ('+(g.lo - r.score)+' pts away)' : r.score <= g.hi ? ' (in your band)' : ' (past it)')) : "";
+      var goalTxt = g ? (' · Rating goal: '+g.lo+'–'+g.hi+(r.score < g.lo ? ' ('+(g.lo - r.score)+' pts away)' : r.score <= g.hi ? ' (in your band)' : ' (past it)')) : "";
       if(hist.length < 2){
         return '<div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">'+
           '<p style="font-weight:700;font-size:16px">Your journey starts here: '+r.score+' / 100'+esc(goalTxt)+'</p>'+
@@ -1034,7 +1221,7 @@
       }).join("");
       return '<div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">'+
         '<p style="font-weight:700;font-size:19px">Your journey: '+start.score+' &rarr; '+cur.score+' <span style="color:var(--volt)">('+(diff>0?"+":"")+diff+')</span></p>'+
-        '<p class="muted small" style="margin-top:3px">Started '+esc(prettyDate(start.date))+' · latest '+esc(prettyDate(cur.date))+(g ? ' · Goal: '+g.lo+'–'+g.hi : '')+'. Every point came from workouts you checked off, weights you logged, and measurements you took.</p>'+
+        '<p class="muted small" style="margin-top:3px">Started '+esc(prettyDate(start.date))+' · latest '+esc(prettyDate(cur.date))+(g ? ' · Rating goal: '+g.lo+'–'+g.hi : '')+'. Every point came from workouts you checked off, weights you logged, and measurements you took.</p>'+
         '<table class="hist"><tr><th>Date</th><th style="text-align:right">Physique rating</th></tr>'+rows+'</table></div>';
     }
     /* ---------------- physique rating goal band (user-set, optional) ----------------
@@ -1043,29 +1230,36 @@
        computed, and nothing is preset for anyone. Stored on-device. */
     function physiqueGoal(){
       var g = state.profile && state.profile.physiqueGoal;
-      if(g && typeof g.lo==="number" && typeof g.hi==="number" && g.lo>=0 && g.hi<=100 && g.lo<=g.hi) return g;
-      return null;
+      if(!g) return null;
+      // Coerce defensively: a band stored with string values still counts.
+      var lo = parseInt(g.lo, 10), hi = parseInt(g.hi, 10);
+      if(isNaN(lo) || isNaN(hi)) return null;
+      lo = Math.max(0, Math.min(100, lo));
+      hi = Math.max(0, Math.min(100, hi));
+      if(lo > hi){ var t = lo; lo = hi; hi = t; }
+      return { lo: lo, hi: hi };
     }
     function physiqueGoalHTML(r){
       var g = physiqueGoal();
       var status;
       if(!g){
-        status = '<p class="muted small" style="margin-top:4px">No goal set yet. Pick the range you\'re aiming for — it\'s your target, nobody else\'s. The score itself still only moves from your training, strength and measurement progress.</p>';
+        status = '<p class="muted small" style="margin-top:4px">No rating goal set yet. Pick the 0–100 range you\'re aiming for — it\'s your target, nobody else\'s. The score itself still only moves from your training, strength and measurement progress.</p>';
       } else if(r.score < g.lo){
-        status = '<p class="small" style="margin-top:4px"><b>Goal: '+g.lo+'–'+g.hi+'</b> · You\'re at '+r.score+' — <b style="color:var(--volt)">'+(g.lo - r.score)+' pts to reach your goal band</b>. Every logged workout, PR and check-in closes that gap.</p>';
+        status = '<p class="small" style="margin-top:4px"><b>Physique Rating goal: '+g.lo+'–'+g.hi+'</b> · You\'re at '+r.score+' — <b style="color:var(--volt)">'+(g.lo - r.score)+' pts to reach your goal band</b>. Every logged workout, PR and check-in closes that gap.</p>';
       } else if(r.score <= g.hi){
-        status = '<p class="small" style="margin-top:4px"><b>Goal: '+g.lo+'–'+g.hi+'</b> · <b style="color:var(--volt)">You\'re inside your goal band</b> at '+r.score+'. Now the game is holding it — consistency is what keeps you there.</p>';
+        status = '<p class="small" style="margin-top:4px"><b>Physique Rating goal: '+g.lo+'–'+g.hi+'</b> · <b style="color:var(--volt)">You\'re inside your goal band</b> at '+r.score+'. Now the game is holding it — consistency is what keeps you there.</p>';
       } else {
-        status = '<p class="small" style="margin-top:4px"><b>Goal: '+g.lo+'–'+g.hi+'</b> · <b style="color:var(--volt)">You\'ve passed the top of your goal band</b> at '+r.score+'. Time to set a new one.</p>';
+        status = '<p class="small" style="margin-top:4px"><b>Physique Rating goal: '+g.lo+'–'+g.hi+'</b> · <b style="color:var(--volt)">You\'ve passed the top of your goal band</b> at '+r.score+'. Time to set a new one.</p>';
       }
       return '<div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">'+
-        '<p style="font-weight:700;font-size:16px">Your goal band</p>'+ status +
+        '<p style="font-weight:700;font-size:16px">Physique Rating goal, 0–100</p>'+
+        '<p class="muted small" style="margin-top:3px">This is a goal for your 0–100 Physique Rating — the progress score on this card. It is <b style="color:var(--ink)">not</b> a weight goal (that\'s the Weight Goal card above) and not one of your training goals (those are under More → Profile).</p>'+ status +
         '<div class="form-grid" style="margin-top:10px">'+
-          '<div><label class="flabel" for="prGoalLo">Goal from</label><input class="text-in" id="prGoalLo" type="number" inputmode="numeric" min="0" max="100" step="1" placeholder="e.g. 87" value="'+(g?g.lo:"")+'"></div>'+
-          '<div><label class="flabel" for="prGoalHi">Goal to</label><input class="text-in" id="prGoalHi" type="number" inputmode="numeric" min="0" max="100" step="1" placeholder="e.g. 100" value="'+(g?g.hi:"")+'"></div>'+
+          '<div><label class="flabel" for="prGoalLo">Rating goal from</label><input class="text-in" id="prGoalLo" type="number" inputmode="numeric" min="0" max="100" step="1" placeholder="e.g. 87" value="'+(g?g.lo:"")+'"></div>'+
+          '<div><label class="flabel" for="prGoalHi">Rating goal to</label><input class="text-in" id="prGoalHi" type="number" inputmode="numeric" min="0" max="100" step="1" placeholder="e.g. 100" value="'+(g?g.hi:"")+'"></div>'+
         '</div>'+
-        '<div class="btn-row"><button class="btn secondary" type="button" id="prGoalSave">'+(g?"Update goal":"Set my goal")+'</button></div>'+
-        (g?'<p class="muted small" style="margin-top:6px">Clear both boxes and tap Update goal to remove it.</p>':"")+
+        '<div class="btn-row"><button class="btn secondary" type="button" id="prGoalSave">'+(g?"Update rating goal":"Set rating goal")+'</button></div>'+
+        (g?'<p class="muted small" style="margin-top:6px">Clear both boxes and tap Update rating goal to remove it.</p>':"")+
       '</div>';
     }
     function review_physique_card(){
@@ -1845,6 +2039,9 @@
         bmiHTML+
       '</div>';
 
+      /* desired-weight goal — pounds, from the weight log; separate from the rating goal */
+      html += weightGoalCardHTML();
+
       /* physique rating — progress over time, after Bodyweight, before Coach's Corner content */
       html += review_physique_card();
 
@@ -1873,7 +2070,7 @@
       var pa = photos.filter(function(p){ return p.id===compareIds.a; })[0];
       var pb = photos.filter(function(p){ return p.id===compareIds.b; })[0];
       html += '<h2 class="sect-title">Progress Photos</h2><div class="card" id="prPhotosCard" style="margin-top:10px">'+
-        '<p class="muted small">Photos are saved <b style="color:var(--ink)">only in this browser, on this phone</b>. They are never uploaded, shared, or sent anywhere — there is no server. Same lighting, same spot, every 2–4 weeks works best.</p>'+
+        '<p class="muted small">Photos are saved <b style="color:var(--ink)">only in this browser, on this phone</b>. They stay on this device. They are only sent to an AI service if you tap Scan on one, and never saved there. Same lighting, same spot, every 2–4 weeks works best.</p>'+
         '<div class="btn-row"><label class="btn" for="photoInput" style="margin:0">Add progress photo · +10 XP</label>'+
         '<input id="photoInput" type="file" accept="image/*" class="hidden"></div>'+
         (photos.length>=2 && pa && pb
@@ -1888,7 +2085,7 @@
           }).join("")+'</div>' : "")+
       '</div>';
 
-      html += practicesCardHTML() + mealsCardHTML();
+      html += checkinCardHTML() + perfGradesHTML() + physiqueScanHTML() + practicesCardHTML() + mealsCardHTML() + mealPlannerHTML();
 
       el.innerHTML = html;
 
@@ -1900,17 +2097,20 @@
         var hiV = document.getElementById("prGoalHi").value.trim();
         if(loV==="" && hiV===""){ // both blank = clear the goal
           state.profile.physiqueGoal = null;
-          save(); toast("Goal band cleared."); renderAll(); return;
+          save(); toast("Physique Rating goal cleared."); renderAll(); return;
         }
         var lo = parseInt(loV,10), hi = parseInt(hiV,10);
-        if(isNaN(lo) || isNaN(hi) || lo<0 || hi>100 || lo>hi){ toast("Goal needs two numbers 0–100, low first — e.g. 87 and 100."); return; }
+        if(isNaN(lo) || isNaN(hi) || lo<0 || hi>100 || lo>hi){ toast("Rating goal needs two numbers 0–100, low first — e.g. 87 and 100."); return; }
         state.profile.physiqueGoal = { lo:lo, hi:hi };
-        save(); toast("Goal set: "+lo+"–"+hi+". Now go earn it."); renderAll();
+        save(); toast("Physique Rating goal set: "+lo+"–"+hi+". Now go earn it."); renderAll();
       });
       var prPhotoLine = document.getElementById("prPhotoLine");
       if(prPhotoLine) prPhotoLine.addEventListener("click", scrollToPhotosCard);
       bindPractices(el);
       bindMeals(el);
+      bindCheckin(el);
+      bindMealPlanner(el);
+      bindWeightGoal(el);
 
       document.getElementById("wAdd").addEventListener("click", function(){
         var d = document.getElementById("wDate").value || todayKey();
@@ -2043,7 +2243,7 @@
       var showCal = caloriesVisible();
       var gKeys = profileGoals();
       var html = '<h2 class="sect-title">Meal Fuel Log</h2><div class="card" style="margin-top:10px">'+
-        '<p class="muted small">Snap a photo of what you ate and log it as fuel. Photos are saved <b style="color:var(--ink)">only on this device</b> and never uploaded. Straight talk: this app can\'t read calories off a photo — there\'s no food-scanning AI in a static app — so any calories here come only from what you type in off a label.</p>';
+        '<p class="muted small">Snap a photo of what you ate and log it as fuel. Photos are saved <b style="color:var(--ink)">only on this device</b> and only leave it if you tap "Estimate macros" . Photo estimates are rough, so edit them before you log; calories can also come straight from a label.</p>';
       if(gKeys.length){
         html += '<div style="margin-top:12px"><p class="small"><b>Your goals: '+esc(goalLabels().join(" · "))+'</b></p>'+
           '<p class="muted small" style="margin-top:2px">Every goal you picked shapes how this log reads your fueling — together, not one at a time:</p>'+
@@ -2074,11 +2274,12 @@
         '<div class="btn-row" style="margin-top:0"><label class="btn secondary" for="mealPhotoInput" style="margin:0">'+(mealPhotoData?"Photo attached — tap to change":"Take / add a meal photo")+'</label>'+
         '<input id="mealPhotoInput" type="file" accept="image/*" class="hidden"></div>'+
         (mealPhotoData ? '<img src="'+mealPhotoData+'" alt="The meal you are about to log" style="width:100%;height:180px;object-fit:cover;border-radius:12px;margin-top:10px;border:1px solid var(--line)">' : "")+
+        mealScanHTML()+
         '<div class="form-grid">'+
-          '<div class="full"><label class="flabel" for="mealName">What did you eat?</label><input class="text-in" id="mealName" type="text" maxlength="60" placeholder="e.g. Chicken, rice &amp; broccoli"></div>'+
+          '<div class="full"><label class="flabel" for="mealName">What did you eat?</label><input class="text-in" id="mealName" value="'+esc(mealScanResult?mealScanResult.name:"")+'" type="text" maxlength="60" placeholder="e.g. Chicken, rice &amp; broccoli"></div>'+
           '<div><label class="flabel" for="mealDate">Date</label><input class="text-in" id="mealDate" type="date" value="'+todayKey()+'"></div>'+
           '<div><label class="flabel" for="mealTime">Time</label><input class="text-in" id="mealTime" type="time" value="'+currentTimeVal()+'"></div>'+
-          (showCal ? '<div class="full"><label class="flabel" for="mealKcal">Calories (from the label — optional)</label><input class="text-in" id="mealKcal" type="number" inputmode="numeric" min="0" max="5000" step="1" placeholder="Leave blank if you don\'t know"></div>' : "")+
+          (showCal ? '<div class="full"><label class="flabel" for="mealKcal">Calories (from the label — optional)</label><input class="text-in" id="mealKcal" value="'+(mealScanResult?mealScanResult.kcal:"")+'" type="number" inputmode="numeric" min="0" max="5000" step="1" placeholder="Leave blank if you don\'t know"></div>' : "")+
         '</div>'+
         '<label class="flabel" style="margin-top:12px">Fuel tags</label><div>'+
           FUEL_TAGS.map(function(t){ return '<button type="button" class="tag-chip'+(mealTagsSel.indexOf(t)>=0?" on":"")+'" data-mealtag="'+esc(t)+'">'+esc(t)+'</button>'; }).join("")+
@@ -2089,7 +2290,7 @@
           return '<div class="meal-row">'+
             (m.data ? '<img class="meal-thumb" src="'+m.data+'" alt="Photo of '+esc(m.name)+'">' : '<div class="meal-thumb" style="display:flex;align-items:center;justify-content:center;color:var(--faint);font-size:10px;font-weight:700;text-align:center">NO<br>PHOTO</div>')+
             '<div style="flex:1"><div style="font-weight:700">'+esc(m.name)+'</div>'+
-            '<div class="muted small">'+esc(prettyDate(m.date))+(m.time?' · '+esc(m.time):"")+((showCal && m.kcal!=null)?' · '+m.kcal+' kcal':"")+'</div>'+
+            '<div class="muted small">'+esc(prettyDate(m.date))+(m.time?' · '+esc(m.time):"")+((showCal && m.kcal!=null)?' · '+m.kcal+' kcal':"")+((showCal && m.macros)?' · P'+m.macros.p+' C'+m.macros.c+' F'+m.macros.f+' (est.)':"")+'</div>'+
             (m.tags && m.tags.length ? '<div style="margin-top:5px">'+m.tags.map(function(t){ return '<span class="tag-chip on" style="padding:3px 9px;font-size:12px;margin-bottom:0">'+esc(t)+'</span>'; }).join("")+'</div>' : "")+
             '</div><button type="button" class="tip-btn" data-delmeal="'+m.id+'">Delete</button></div>';
         }).join("")+'</div>';
@@ -2100,6 +2301,7 @@
       return html;
     }
     function bindMeals(el){
+      bindMealScan();
       var mpi = document.getElementById("mealPhotoInput");
       if(mpi) mpi.addEventListener("change", function(){
         var f = mpi.files && mpi.files[0]; if(!f) return;
@@ -2111,7 +2313,7 @@
             var c = document.createElement("canvas");
             c.width = Math.round(img.width*scale); c.height = Math.round(img.height*scale);
             c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
-            mealPhotoData = c.toDataURL("image/jpeg", 0.75);
+            mealPhotoData = c.toDataURL("image/jpeg", 0.75); mealScanResult = null; mealScanStatus = "";
             renderProgress();
           };
           img.src = reader.result;
@@ -2131,8 +2333,8 @@
         var kEl = document.getElementById("mealKcal");
         if(kEl && kEl.value.trim()!==""){ var kv = parseInt(kEl.value, 10); if(!isNaN(kv) && kv>=0) kcal = kv; }
         state.meals.push({ id:"m"+Date.now(), date: document.getElementById("mealDate").value || todayKey(),
-          time: document.getElementById("mealTime").value || "", name: name, tags: mealTagsSel.slice(), kcal: kcal, data: mealPhotoData });
-        mealPhotoData = null; mealTagsSel = [];
+          time: document.getElementById("mealTime").value || "", name: name, tags: mealTagsSel.slice(), kcal: kcal, data: mealPhotoData, macros: mealScanResult ? {p:mealScanResult.p,c:mealScanResult.c,f:mealScanResult.f} : null });
+        mealPhotoData = null; mealTagsSel = []; mealScanResult = null; mealScanStatus = "";
         save(); toast("Meal logged · +10 XP"); renderAll();
       });
       var ts = document.getElementById("calTargetSave");
@@ -2146,6 +2348,315 @@
         state.meals = state.meals.filter(function(m){ return m.id !== b.getAttribute("data-delmeal"); });
         save(); renderAll();
       });});
+    }
+
+    /* ---------------- desired-weight goal (separate from the Physique Rating goal) ----------------
+       A plain bodyweight target the user sets for themselves: start weight
+       (first log) → current weight (latest log) → desired weight, with pounds
+       remaining and progress read straight off the weight log. No target date,
+       no prescribed pace or loss rate, and no deficit math anywhere — the app
+       never tells anyone how fast to move or how little to eat. */
+    function desiredWeight(){
+      var v = state.profile ? parseFloat(state.profile.desiredWeight) : NaN;
+      return (!isNaN(v) && v>=40 && v<=600) ? Math.round(v*10)/10 : null;
+    }
+    function weightGoalCardHTML(){
+      var dw = desiredWeight();
+      var w = sortedWeights();
+      var start = w.length ? w[0].lbs : null;
+      var cur = w.length ? w[w.length-1].lbs : null;
+      var body = "";
+      if(dw===null){
+        body = '<p class="muted small" style="margin-top:6px">No desired weight set. If you have a bodyweight you\'re aiming for, put it below (or under More → Profile) and this card tracks the distance from your weight log — start, current, and how far is left. No deadline, no required pace.</p>';
+      } else if(cur===null){
+        body = '<p class="muted small" style="margin-top:6px">Your desired weight is <b style="color:var(--ink)">'+dw+' lb</b>. Log a weigh-in in the Bodyweight card above and this card starts tracking start → current → desired.</p>';
+      } else {
+        var remaining = Math.round((cur - dw)*10)/10;
+        var reached = (dw < start && cur <= dw) || (dw > start && cur >= dw) || cur === dw || start === null;
+        if(start === dw) reached = (cur === dw);
+        var pct = 0;
+        if(start !== null && start !== dw) pct = Math.max(0, Math.min(100, Math.round((start - cur)/(start - dw)*100)));
+        else if(start === dw) pct = reached ? 100 : 0;
+        var leftTxt;
+        if(reached) leftTxt = '<b style="color:var(--volt)">You\'re at your desired weight.</b> Maintaining is its own skill — keep the habits that got you here.';
+        else if(dw < cur) leftTxt = '<b style="color:var(--volt)">'+Math.abs(remaining)+' lb to go</b> down to your desired weight.';
+        else leftTxt = '<b style="color:var(--volt)">'+Math.abs(remaining)+' lb to go</b> up to your desired weight.';
+        body = '<div class="stat-grid" style="margin-top:10px">'+
+          '<div class="stat"><div class="v">'+(start===null?"—":start)+'</div><div class="k">Start (lb)</div></div>'+
+          '<div class="stat"><div class="v">'+cur+'</div><div class="k">Current (lb)</div></div>'+
+          '<div class="stat"><div class="v">'+dw+'</div><div class="k">Desired (lb)</div></div></div>'+
+          '<div class="score-bar"><div style="width:'+pct+'%"></div></div>'+
+          '<p class="small" style="margin-top:6px">'+leftTxt+' <span class="muted">'+pct+'% of the way from your first weigh-in. No target date and no required pace — the trend over weeks is what counts, not any single weigh-in.</span></p>';
+      }
+      var age = state.profile && state.profile.age;
+      var teenNote = (age && age < 18)
+        ? '<p class="muted small" style="margin-top:10px"><b style="color:var(--ink)">Under 18?</b> Weight goals are a parent, coach, or doctor conversation first — you\'re still growing, and fueling that growth comes before any number on the scale. This card only tracks the weights you log; it never prescribes a target, a pace, or a deficit.</p>'
+        : "";
+      return '<h2 class="sect-title">Weight Goal</h2><div class="card" style="margin-top:10px">'+
+        '<p class="muted small">Your bodyweight goal, tracked from your own weigh-ins. This is separate from your <b style="color:var(--ink)">Physique Rating goal (0–100)</b> below — that one is a progress score, this one is pounds.</p>'+
+        body + teenNote +
+        '<div style="display:flex;gap:10px;margin-top:12px"><input class="text-in" id="wgDesired" type="number" inputmode="decimal" min="40" max="600" step="0.1" placeholder="Desired weight (lb)" value="'+(dw===null?"":dw)+'" aria-label="Desired weight in pounds">'+
+        '<button class="btn secondary" type="button" id="wgSave" style="width:auto;flex:none;padding:12px 16px;min-height:48px">Save</button></div>'+
+        '<p class="muted small" style="margin-top:4px">Leave it blank and tap Save to clear it. You can also set it under More → Profile.</p>'+
+      '</div>';
+    }
+    function bindWeightGoal(el){
+      var b = document.getElementById("wgSave");
+      if(!b) return;
+      b.addEventListener("click", function(){
+        var v = document.getElementById("wgDesired").value.trim();
+        if(v === ""){
+          state.profile.desiredWeight = null;
+          save(); toast("Desired weight cleared."); renderAll(); return;
+        }
+        var n = parseFloat(v);
+        if(isNaN(n) || n < 40 || n > 600){ toast("Desired weight needs to be between 40 and 600 lb — or leave it blank."); return; }
+        state.profile.desiredWeight = Math.round(n*10)/10;
+        save(); toast("Desired weight set: "+state.profile.desiredWeight+" lb."); renderAll();
+      });
+    }
+
+    /* ---------------- physique check-in (photo + weight + tape in one save) ----------------
+       One flow near the photos: snap/upload a progress photo and log weight +
+       measurements together. Saving writes the normal photo / weight /
+       measurement entries, so the Physique Rating, its history, and the
+       first-vs-latest photo comparison all update through the same code as
+       always. HARD RULES: the photo is never analyzed — no AI body scan, no
+       body-fat estimate from photos, no appearance grade, no comparison to
+       anybody else's photos. The rating stays progress-based. */
+    function checkinCardHTML(){
+      return '<h2 class="sect-title">Physique Check-In</h2><div class="card" style="margin-top:10px">'+
+        '<p class="muted small">Do your whole check-in in one place: a progress photo, your weight, and your tape measurements, saved together. Saving updates your <b style="color:var(--ink)">Physique Rating</b> and your rating history, and the photo joins the first-vs-latest comparison in Progress Photos above.</p>'+
+        '<p class="muted small" style="margin-top:6px"><b style="color:var(--ink)">What this is not:</b> your photo is never analyzed automatically, and there is never a body-fat guess. Only if you tap Scan below is it sent to an AI service for a visual read. Your rating only ever moves from your training, your strength, and your measurements. Photos are saved only on this device, never uploaded.</p>'+
+        '<div class="btn-row"><label class="btn secondary" for="ciPhotoInput" style="margin:0">'+(checkinPhotoData ? "Photo attached — tap to change" : "Take / add check-in photo")+'</label>'+
+        '<input id="ciPhotoInput" type="file" accept="image/*" class="hidden"></div>'+
+        (checkinPhotoData ? '<img src="'+checkinPhotoData+'" alt="The check-in photo you are about to save" style="width:100%;height:180px;object-fit:cover;border-radius:12px;margin-top:10px;border:1px solid var(--line)">' : "")+
+        '<div class="form-grid">'+
+          '<div><label class="flabel" for="ciDate">Date</label><input class="text-in" id="ciDate" type="date" value="'+todayKey()+'"></div>'+
+          '<div><label class="flabel" for="ciWeight">Weight (lb)</label><input class="text-in" id="ciWeight" type="number" inputmode="decimal" step="0.1" min="40" max="600" placeholder="e.g. 132.5"></div>'+
+          '<div><label class="flabel" for="ciWaist">Waist (in)</label><input class="text-in" id="ciWaist" type="number" inputmode="decimal" step="0.25" placeholder="—"></div>'+
+          '<div><label class="flabel" for="ciChest">Chest (in)</label><input class="text-in" id="ciChest" type="number" inputmode="decimal" step="0.25" placeholder="—"></div>'+
+          '<div><label class="flabel" for="ciArm">Arm (in)</label><input class="text-in" id="ciArm" type="number" inputmode="decimal" step="0.25" placeholder="—"></div>'+
+          '<div><label class="flabel" for="ciThigh">Thigh (in)</label><input class="text-in" id="ciThigh" type="number" inputmode="decimal" step="0.25" placeholder="—"></div>'+
+        '</div>'+
+        '<div class="btn-row"><button class="btn" type="button" id="ciSave">Save check-in</button></div>'+
+        '<p class="muted small" style="margin-top:6px">Fill in as much or as little as you have — a photo alone, a weight alone, or the full set all count. Every piece you add earns its usual XP.</p>'+
+      '</div>';
+    }
+    function bindCheckin(el){
+      bindPhysiqueScan();
+      var pi = document.getElementById("ciPhotoInput");
+      if(pi) pi.addEventListener("change", function(){
+        var f = pi.files && pi.files[0]; if(!f) return;
+        var reader = new FileReader();
+        reader.onload = function(){
+          var img = new Image();
+          img.onload = function(){
+            var maxW = 800, scale = Math.min(1, maxW/img.width);
+            var c = document.createElement("canvas");
+            c.width = Math.round(img.width*scale); c.height = Math.round(img.height*scale);
+            c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+            checkinPhotoData = c.toDataURL("image/jpeg", 0.78); physScanResult = null; physScanStatus = "";
+            renderProgress();
+          };
+          img.src = reader.result;
+        };
+        reader.readAsDataURL(f);
+      });
+      var sv = document.getElementById("ciSave");
+      if(sv) sv.addEventListener("click", function(){
+        function num(id){ var v = parseFloat(document.getElementById(id).value); return isNaN(v) ? null : v; }
+        var d = document.getElementById("ciDate").value || todayKey();
+        var wv = num("ciWeight");
+        if(wv !== null && (wv < 40 || wv > 600)){ toast("That weight looks off — between 40 and 600 lb."); return; }
+        var rec = { date:d, waist:num("ciWaist"), chest:num("ciChest"), arm:num("ciArm"), thigh:num("ciThigh") };
+        ["waist","chest","arm","thigh"].forEach(function(k){ if(rec[k] !== null) rec[k] = Math.round(rec[k]*100)/100; });
+        var hasMeas = rec.waist !== null || rec.chest !== null || rec.arm !== null || rec.thigh !== null;
+        if(!checkinPhotoData && wv === null && !hasMeas){ toast("Add a photo, a weight, or at least one measurement first."); return; }
+        if(checkinPhotoData){
+          var pid = "p"+Date.now();
+          state.photos.push({ id:pid, date:d, data:checkinPhotoData });
+          compareIds.b = pid; // newest photo becomes the "latest" in the comparison
+          checkinPhotoData = null;
+        }
+        if(wv !== null) state.weights.push({ date:d, lbs: Math.round(wv*10)/10 });
+        if(hasMeas) state.measures.push(rec);
+        save(); toast("Check-in saved — rating and history updated."); renderAll();
+      });
+    }
+
+    /* ---------------- daily meal planner (YOUR target + YOUR goals) ----------------
+       Builds one full day — breakfast, lunch, dinner, snack — scaled to the
+       daily calorie target the user typed in themselves, split roughly
+       25% / 30% / 30% / 15%, and framed by their selected goals. The planner
+       NEVER computes a target or a deficit for anyone: no target set, no
+       plan — just a prompt to set one. Every recipe carries exact
+       measurements, simple steps, and calorie + protein / carb / fat
+       estimates. All of it is healthy AND flavorful — properly seasoned,
+       protein-forward, never bland diet food. The planner is part of the
+       calorie section: it hides with it when the profile hides calories. */
+    function planStyleKey(){
+      var g = profileGoals();
+      function has(k){ return g.indexOf(k) >= 0; }
+      if(has("cut") || has("lose") || has("losegain") || has("recomp")) return "cut";
+      if(has("bulk") || has("gain") || has("muscle") || has("strength")) return "bulk";
+      if(has("endurance") || has("athendur")) return "endurance";
+      return "balanced";
+    }
+    /* Recipe shape: base = kcal the amounts as written make; p/c/f = grams at
+       base; ing = [qty, unit, item, scalable] — scalable amounts ride the
+       day's calorie split, seasonings and single items stay fixed. */
+    var PLAN_MENUS = {
+      cut: { intro:"Cut mode: protein high, volume high. Big, filling plates on fewer calories, with the seasoning turned UP — losing fat is hard enough without eating food that tastes like cardboard.",
+        meals:[
+          { name:"Greek Yogurt Crunch Bowl", mins:"5 min", base:430, p:38, c:46, f:10,
+            note:"Thick, cold and crunchy — tastes like dessert, hits like a protein shake.",
+            ing:[[250,"g","0% Greek yogurt",1],[150,"g","mixed berries (about 1 cup)",1],[30,"g","high-fiber cereal or plain oats",1],[12,"g","chia seeds (1 tbsp)",1],[7,"g","honey (1 tsp)",0],[1,"tsp","ground cinnamon",0],[1,"tsp","vanilla extract",0]],
+            steps:["Stir the vanilla and cinnamon into the yogurt right in the bowl.","Top with the berries and cereal, then sprinkle the chia over everything.","Drizzle the honey across the top and eat it cold — the crunch is the point."] },
+          { name:"Chicken Caesar Wrap", mins:"20 min", base:560, p:52, c:38, f:21,
+            note:"The lighter Caesar dressing is Greek-yogurt based — all the tangy, garlicky Caesar flavor, plus extra protein instead of a cup of oil.",
+            ing:[[170,"g","chicken breast",1],[1,"piece","large whole-wheat wrap (about 62 g)",0],[80,"g","romaine lettuce, chopped (about 2 cups)",1],[60,"g","0% Greek yogurt (the dressing base)",1],[15,"g","parmesan, finely grated — split between dressing and topping",1],[1,"tbsp","lemon juice",0],[1,"tsp","Dijon mustard",0],[1,"clove","garlic, grated",0],[1,"tsp","olive oil",0],[1,"tsp","smoked paprika",0],[0.5,"tsp","garlic powder",0],[0.5,"tsp","salt, plus plenty of black pepper",0]],
+            steps:["Season the chicken all over with the smoked paprika, garlic powder, salt and pepper. Sear it in the olive oil over medium-high heat, 6–7 minutes per side, until cooked through (165°F, juices run clear). Rest 5 minutes, then slice thin.","Whisk the dressing: Greek yogurt, lemon juice, Dijon, grated garlic, half the parmesan, a pinch of salt and lots of black pepper. Taste it — it should be tangy and garlicky, like real Caesar.","Toss the romaine in the dressing until every leaf is coated.","Lay the wrap flat and pile the dressed romaine down the middle. Top with the sliced chicken and the rest of the parmesan. Fold the sides in and roll it tight, burrito-style.","Toast it seam-side down in the hot pan for 1 minute so it seals. Slice on a diagonal and eat while the chicken is warm."] },
+          { name:"Garlic-Lime Turkey & Black Bean Skillet", mins:"25 min", base:580, p:48, c:44, f:22,
+            note:"Smoky, limey and a little spicy — a full pan of food that eats like taco night, not a diet plate.",
+            ing:[[180,"g","lean ground turkey",1],[100,"g","black beans, drained and rinsed (about ½ cup)",1],[150,"g","cooked rice (about ¾ cup) — swap in cauliflower rice for even more volume",1],[1,"piece","bell pepper, diced",0],[0.5,"piece","onion, diced",0],[60,"g","salsa, plus more to serve",1],[1,"tsp","chili powder",0],[1,"tsp","ground cumin",0],[0.5,"tsp","smoked paprika",0],[2,"clove","garlic, minced",0],[0.5,"piece","lime, cut into wedges",0]],
+            steps:["Brown the turkey in a hot pan, breaking it up, about 6 minutes. Drain any extra fat.","Add the onion, pepper and garlic; cook 3 minutes. Stir in the chili powder, cumin and paprika and let the spices toast for 30 seconds.","Stir in the beans and salsa and simmer 3–4 minutes until thick and saucy.","Serve over the rice with a big squeeze of lime and extra salsa on top."] },
+          { name:"Cottage Cheese & Peach Crunch Cup", mins:"5 min", base:230, p:21, c:24, f:5,
+            note:"Sweet, salty, crunchy — the snack that ends the 9 p.m. kitchen wander.",
+            ing:[[150,"g","cottage cheese",1],[1,"piece","ripe peach, sliced (or 100 g peaches in juice, drained)",0],[15,"g","crushed walnuts or low-sugar granola",1],[1,"tsp","honey",0],[1,"pinch","ground cinnamon",0]],
+            steps:["Spoon the cottage cheese into a cup or small bowl.","Fan the peach slices on top, scatter the walnuts over it.","Drizzle the honey, dust with cinnamon, eat cold."] }
+        ] },
+      bulk: { intro:"Bulk mode: calorie-dense and protein-forward. Same healthy base as everything here, but bigger portions, healthy fats and sauces so the calories climb without junk food doing the work.",
+        meals:[
+          { name:"Peanut Butter Banana Overnight Oats", mins:"10 min + overnight", base:720, p:30, c:86, f:28,
+            note:"Tastes like banana bread batter — because that's basically the assignment.",
+            ing:[[80,"g","rolled oats",1],[240,"ml","milk (dairy or your pick)",1],[100,"g","Greek yogurt",1],[32,"g","peanut butter (2 tbsp)",1],[1,"piece","banana, sliced",0],[14,"g","honey (1 tbsp)",0],[12,"g","chia seeds (1 tbsp)",1],[1,"tsp","vanilla extract",0],[1,"pinch","ground cinnamon",0]],
+            steps:["Stir the oats, milk, yogurt, chia, honey, vanilla and cinnamon together in a jar or bowl.","Fold in half the banana. Cover and refrigerate overnight (or at least 4 hours).","Top with the rest of the banana and the peanut butter in the morning. Eat cold, or warm it 1 minute."] },
+          { name:"BBQ Chicken Rice Bowl", mins:"25 min", base:780, p:55, c:84, f:23,
+            note:"Smoky-sweet BBQ chicken over rice with corn, beans and a little cheddar — a deli bowl you'd pay $14 for.",
+            ing:[[200,"g","chicken breast or thigh",1],[250,"g","cooked rice (about 1¼ cups)",1],[30,"g","BBQ sauce, plus more to drizzle",1],[80,"g","corn, drained",1],[80,"g","black beans, drained",1],[20,"g","cheddar, shredded",1],[1,"tsp","smoked paprika",0],[0.5,"tsp","garlic powder",0],[0.5,"tsp","salt + black pepper",0],[2,"tbsp","pickled red onion (optional, big flavor)",0]],
+            steps:["Season the chicken with paprika, garlic powder, salt and pepper. Sear over medium-high heat 6–7 minutes per side until cooked through; rest 5 minutes and slice.","Warm the rice, corn and beans together with a pinch of salt.","Bowl it: rice on the bottom, corn and beans over it, sliced chicken on top.","Drizzle generously with BBQ sauce, shower with cheddar and pickled onion."] },
+          { name:"Beef & Broccoli Stir-Fry with Jasmine Rice", mins:"25 min", base:760, p:50, c:78, f:25,
+            note:"Gingery, garlicky, glossy sauce — takeout energy, built from real food.",
+            ing:[[180,"g","lean beef strips (sirloin)",1],[250,"g","cooked jasmine rice (about 1¼ cups)",1],[150,"g","broccoli florets",1],[3,"tbsp","low-sodium soy sauce",0],[14,"g","honey (1 tbsp)",0],[1,"tbsp","fresh ginger, grated (or 1 tsp ground)",0],[2,"clove","garlic, minced",0],[1,"tsp","sesame oil",0],[1,"tsp","cornstarch, stirred into 2 tbsp water",0],[0.5,"tsp","chili flakes (optional)",0]],
+            steps:["Sear the beef in a very hot pan 2–3 minutes until browned at the edges. Take it out.","In the same pan, stir-fry the broccoli with a splash of water 3–4 minutes until bright green and just tender.","Add garlic and ginger for 30 seconds, then pour in the soy sauce and honey and let it bubble.","Stir in the cornstarch slurry; when the sauce turns glossy (about 1 minute), return the beef, drizzle the sesame oil, toss everything together.","Serve over the jasmine rice with chili flakes on top."] },
+          { name:"Chocolate Milk & Trail Mix", mins:"2 min", base:430, p:18, c:48, f:19,
+            note:"The easiest calories in the plan — and it still tastes like a treat, because it is one.",
+            ing:[[350,"ml","chocolate milk",1],[40,"g","trail mix (nuts, raisins, dark chocolate chips)",1]],
+            steps:["Pour the chocolate milk over ice.","Eat the trail mix by the handful like you mean it. Done."] }
+        ] },
+      endurance: { intro:"Endurance mode: carb-forward around training. Glycogen is the fuel tank, so the day leans into oats, pasta, rice and potatoes — with protein at every stop so you recover for the next session.",
+        meals:[
+          { name:"Big Banana Oat Bowl", mins:"10 min", base:680, p:22, c:104, f:19,
+            note:"Warm, sweet and loaded — the breakfast that makes mile 8 feel like mile 2.",
+            ing:[[90,"g","rolled oats",1],[300,"ml","milk",1],[1,"piece","banana, sliced",0],[30,"g","raisins",1],[16,"g","peanut butter (1 tbsp)",1],[14,"g","honey or brown sugar (1 tbsp)",0],[1,"pinch","ground cinnamon",0],[1,"pinch","salt (makes the oats taste like something)",0]],
+            steps:["Simmer the oats and milk with the pinch of salt, stirring, about 5 minutes until thick and creamy.","Stir in half the banana and the raisins; cook 1 more minute.","Top with the rest of the banana, the peanut butter melting over the top, honey and cinnamon."] },
+          { name:"Turkey Pesto Pasta", mins:"20 min", base:750, p:48, c:84, f:23,
+            note:"Herby, garlicky pesto with lean turkey and sweet cherry tomatoes — a full tank in a bowl.",
+            ing:[[110,"g","pasta, dry (penne or fusilli)",1],[150,"g","ground turkey or sliced turkey breast",1],[30,"g","basil pesto",1],[100,"g","cherry tomatoes, halved",1],[40,"g","baby spinach (a big handful)",1],[10,"g","parmesan, grated",1],[1,"clove","garlic, minced",0],[0.5,"tsp","salt + black pepper",0],[0.5,"tsp","chili flakes (optional)",0]],
+            steps:["Boil the pasta in well-salted water until just tender. Save a mug of the pasta water before draining.","Brown the turkey with the garlic, salt and pepper, about 6 minutes.","Add the tomatoes for 2 minutes until they start to burst, then the spinach until it wilts.","Toss everything with the pesto and a splash of pasta water until glossy. Shower with parmesan."] },
+          { name:"Salmon, Sweet Potato & Garlic Green Beans", mins:"30 min", base:700, p:42, c:58, f:31,
+            note:"Crispy-skinned salmon, caramelized sweet potato, garlicky beans — restaurant plate, recovery food.",
+            ing:[[170,"g","salmon fillet",1],[300,"g","sweet potato, cut into wedges",1],[150,"g","green beans, trimmed",1],[1,"tbsp","olive oil",0],[2,"clove","garlic, minced",0],[0.5,"tsp","smoked paprika",0],[0.5,"tsp","salt + black pepper",0],[0.5,"piece","lemon, cut into wedges",0]],
+            steps:["Roast the sweet potato wedges with half the olive oil, salt and pepper at 425°F (220°C) for 25 minutes, flipping halfway.","Season the salmon with paprika, salt and pepper. Sear skin-side down in a hot pan 5–6 minutes, flip for 1 minute.","In the same pan, toss the green beans with the rest of the oil and the garlic for 4–5 minutes until bright and blistered in spots.","Plate it all with a big squeeze of lemon over everything."] },
+          { name:"Berry Banana Oat Smoothie", mins:"5 min", base:380, p:14, c:64, f:7,
+            note:"Cold, thick and sweet — built to refill the tank between sessions.",
+            ing:[[300,"ml","milk",1],[1,"piece","banana",0],[100,"g","frozen mixed berries",1],[30,"g","rolled oats",1],[14,"g","honey (1 tbsp)",0]],
+            steps:["Put everything in a blender, milk first.","Blend 60–90 seconds until completely smooth and thick.","Drink it cold, ideally within an hour after training."] }
+        ] },
+      balanced: { intro:"Balanced athlete mode: a bit of everything, done well — protein at every meal, real carbs for training, healthy fats, and food seasoned like somebody cares.",
+        meals:[
+          { name:"Veggie Egg Scramble & Crunch Toast", mins:"12 min", base:540, p:28, c:38, f:29,
+            note:"Soft eggs, sweet tomatoes, salty cheese — breakfast that tastes like a diner did it.",
+            ing:[[3,"piece","eggs",1],[40,"g","baby spinach (a handful)",1],[80,"g","cherry tomatoes, halved",1],[20,"g","cheddar or feta, crumbled",1],[2,"slice","whole-grain bread, toasted",0],[1,"tsp","butter or olive oil",0],[0.5,"tsp","salt + black pepper",0],[1,"tsp","hot sauce (optional, recommended)",0]],
+            steps:["Soften the tomatoes in the butter over medium heat for 2 minutes; add the spinach until it wilts.","Whisk the eggs with salt and pepper, pour them in, and stir slowly with a spatula until just set and still soft, about 2 minutes.","Fold in the cheese, kill the heat, and pile the eggs onto the toast. Hot sauce on top."] },
+          { name:"Chicken Fajita Rice Bowl", mins:"25 min", base:640, p:48, c:56, f:24,
+            note:"Charred peppers, smoky chicken, cool avocado and lime — every bite has something going on.",
+            ing:[[170,"g","chicken breast, sliced into strips",1],[200,"g","cooked rice (about 1 cup)",1],[1,"piece","bell pepper, sliced",0],[0.5,"piece","onion, sliced",0],[50,"g","avocado, sliced (about ½ a small avocado)",1],[40,"g","salsa",1],[1,"tsp","chili powder",0],[1,"tsp","ground cumin",0],[0.5,"tsp","smoked paprika",0],[0.5,"tsp","salt + black pepper",0],[1,"tbsp","olive oil",0],[0.5,"piece","lime, cut into wedges",0]],
+            steps:["Toss the chicken with the chili powder, cumin, paprika, salt and pepper.","Sear the chicken in half the oil over high heat 5–6 minutes until charred at the edges. Take it out.","Char the pepper and onion in the rest of the oil, 5 minutes, until soft with blackened spots.","Bowl it over the rice: chicken, peppers and onions, avocado and salsa. Big squeeze of lime over everything."] },
+          { name:"Turkey Bolognese with Parmesan", mins:"30 min", base:680, p:50, c:72, f:20,
+            note:"A real red sauce — sweet, rich and herby — over pasta with lean turkey doing the heavy lifting.",
+            ing:[[100,"g","spaghetti or penne, dry",1],[170,"g","lean ground turkey",1],[200,"g","crushed tomatoes or passata",1],[10,"g","parmesan, grated, plus more to serve",1],[0.5,"piece","onion, finely diced",0],[2,"clove","garlic, minced",0],[1,"tsp","olive oil",0],[1,"tsp","Italian seasoning (or dried oregano + basil)",0],[0.5,"tsp","sugar (tames the tomato acid — trust it)",0],[0.5,"tsp","salt + black pepper",0]],
+            steps:["Soften the onion in the oil for 3 minutes; add the garlic for 30 seconds.","Brown the turkey, breaking it up fine, about 6 minutes.","Add the tomatoes, Italian seasoning, sugar, salt and pepper. Simmer 12–15 minutes until thick and rich.","Boil the pasta in salted water; toss it through the sauce with a splash of pasta water.","Serve with parmesan over the top — more than you think."] },
+          { name:"Yogurt, Granola & Berry Cup", mins:"3 min", base:290, p:18, c:36, f:8,
+            note:"Crunchy, creamy, tart and sweet — a snack, not a compromise.",
+            ing:[[170,"g","Greek yogurt",1],[30,"g","granola",1],[80,"g","mixed berries",1],[1,"tsp","honey (optional)",0]],
+            steps:["Yogurt in a cup, granola over it, berries over that.","Honey on top if you want it. Eat before the granola goes soft — timing is everything."] }
+        ] }
+    };
+    function fmtQty(q){
+      var v = Math.round(q*4)/4;
+      var whole = Math.floor(v), rem = Math.round((v-whole)*100)/100;
+      var fr = { "0":"", "0.25":"¼", "0.5":"½", "0.75":"¾" }[String(rem)] || "";
+      if(whole === 0) return fr || "0";
+      return whole + (fr ? " "+fr : "");
+    }
+    function planDay(){
+      var target = state.profile && state.profile.calorieTarget;
+      if(!target) return null;
+      var style = planStyleKey();
+      var menu = PLAN_MENUS[style];
+      var slots = [["Breakfast", 0.25], ["Lunch", 0.30], ["Dinner", 0.30], ["Snack", 0.15]];
+      var kc = slots.map(function(s){ return Math.round(target * s[1] / 5) * 5; });
+      kc[3] = target - kc[0] - kc[1] - kc[2]; // snack takes the remainder so the day adds up to the target
+      if(kc[3] < 50) kc[3] = 50;
+      var meals = menu.meals.map(function(r, i){
+        var f = kc[i] / r.base;
+        return { slot: slots[i][0], recipe: r, kcal: kc[i], factor: f,
+                 p: Math.round(r.p * f), c: Math.round(r.c * f), f: Math.round(r.f * f) };
+      });
+      var tot = meals.reduce(function(a, m){ return { kcal:a.kcal + m.kcal, p:a.p + m.p, c:a.c + m.c, f:a.f + m.f }; }, { kcal:0, p:0, c:0, f:0 });
+      return { style: style, menu: menu, meals: meals, totals: tot, target: target };
+    }
+    function mealPlannerHTML(){
+      if(!caloriesVisible()) return ""; // the planner lives and hides with the calorie section
+      var head = '<h2 class="sect-title">Daily Meal Planner</h2><div class="card" style="margin-top:10px">'+
+        '<p class="muted small">A full day of food built from <b style="color:var(--ink)">your</b> daily calorie target and <b style="color:var(--ink)">your</b> selected goals — breakfast, lunch, dinner and a snack, each with exact measurements, simple steps, and calorie + macro estimates. Nothing here picks a target or a deficit for you: the target is the number you typed into the Meal Fuel Log, always.</p>';
+      var day = planDay();
+      if(!day){
+        return head +
+          '<p class="small" style="margin-top:10px"><b>No calorie target set yet.</b> Set your daily calorie target in the calorie section of the Meal Fuel Log above, and this planner builds your whole day around it, framed by your goals.</p>'+
+          '<p class="muted small" style="margin-top:8px">Not sure what your target should be? That number is yours to set with real-world advice behind it — and if you\'re under 18, talk to a parent, coach, or doctor before running any deficit. Growing athletes fuel first.</p></div>';
+      }
+      var gLine = goalLabel()
+        ? '<p class="small" style="margin-top:8px"><b>Your goals: '+esc(goalLabel())+'</b></p>'
+        : '<p class="muted small" style="margin-top:8px">No goals picked yet — this is the balanced athlete plan. Pick goals under More → Profile and the plan reshapes itself around them.</p>';
+      var html = head + gLine +
+        '<p class="muted small" style="margin-top:4px">'+esc(day.menu.intro)+'</p>'+
+        '<div class="stat-grid" style="margin-top:12px">'+
+          '<div class="stat"><div class="v">'+day.target+'</div><div class="k">Day target (kcal)</div></div>'+
+          '<div class="stat"><div class="v">'+day.totals.p+' g</div><div class="k">Protein (est.)</div></div>'+
+          '<div class="stat"><div class="v">'+day.totals.c+' g</div><div class="k">Carbs (est.)</div></div></div>'+
+        '<p class="small" style="margin-top:6px">Split: breakfast 25% · lunch 30% · dinner 30% · snack 15% of your target. <b>Day totals (estimates): ~'+day.totals.kcal+' kcal · '+day.totals.p+' g protein · '+day.totals.c+' g carbs · '+day.totals.f+' g fat.</b></p>';
+      day.meals.forEach(function(m, idx){
+        var r = m.recipe;
+        var ingLis = r.ing.map(function(it){
+          var qty = it[3] ? (it[1] === "g" || it[1] === "ml" ? String(Math.max(5, Math.round(it[0] * m.factor / 5) * 5)) : fmtQty(it[0] * m.factor)) : fmtQty(it[0]);
+          return '<li style="margin-top:3px"><b>'+qty+' '+esc(it[1])+'</b> — '+esc(it[2])+'</li>';
+        }).join("");
+        html += '<div style="margin-top:16px;border-top:1px solid var(--line);padding-top:12px">'+
+          '<p style="font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--faint)">'+esc(m.slot)+' · ~'+m.kcal+' kcal</p>'+
+          '<h3 style="font-size:21px;margin-top:2px">'+esc(r.name)+'</h3>'+
+          '<p class="muted small" style="margin-top:2px">About '+esc(r.mins)+' · <b style="color:var(--ink)">~'+m.kcal+' kcal · '+m.p+' g protein · '+m.c+' g carbs · '+m.f+' g fat</b> (estimates)</p>'+
+          '<p class="small" style="margin-top:4px">'+esc(r.note)+'</p>'+
+          '<p style="font-weight:700;margin-top:10px">You need</p><ul style="margin:4px 0 0;padding-left:18px;font-size:14.5px">'+ingLis+'</ul>'+
+          '<p style="font-weight:700;margin-top:10px">Make it</p><ol class="steps">'+r.steps.map(function(s){ return '<li>'+esc(s)+'</li>'; }).join("")+'</ol>'+
+          '<div class="btn-row"><button class="btn secondary" type="button" data-logplan="'+idx+'">Log this '+esc(m.slot.toLowerCase())+' in the Fuel Log · +10 XP</button></div>'+
+        '</div>';
+      });
+      html += '<p class="muted small" style="margin-top:14px"><b style="color:var(--ink)">Honest note:</b> all of this is just a recommendation tool, not medical advice. Calorie and macro numbers are estimates — real food varies by brand and portion. If you\'re under 18, calorie tracking honestly isn\'t recommended — growing athletes should focus on fueling to train and grow, and talk to a parent, coach, or doctor about nutrition. You can hide this whole section anytime under More → Profile.</p></div>';
+      return html;
+    }
+    function bindMealPlanner(el){
+      el.querySelectorAll("[data-logplan]").forEach(function(b){
+        b.addEventListener("click", function(){
+          var day = planDay(); if(!day) return;
+          var m = day.meals[+b.getAttribute("data-logplan")]; if(!m) return;
+          state.meals.push({ id:"m"+Date.now(), date: todayKey(), time: currentTimeVal(),
+            name: m.slot+" — "+m.recipe.name, tags: [], kcal: m.kcal, data: null });
+          save(); toast(m.slot+" logged · +10 XP"); renderAll();
+        });
+      });
     }
 
     /* ---------------- AI-style coach chat (rule-based, from your own logs) ---------------- */
@@ -2195,7 +2706,7 @@
         return '<div class="chat-row"><div class="chat-av"'+(i>0?' style="visibility:hidden"':"")+' aria-hidden="true">AI</div><div class="bubble">'+m+'</div></div>';
       }).join("");
       return '<div class="card" style="margin-top:12px"><div style="font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)">AI Coach · from your logs</div>'+rows+
-        '<p class="muted small" style="margin-top:12px">How this works, honestly: I\'m a built-in coach that reads your logs right here on this device and writes these messages from your numbers. I\'m not a live AI chat, and nothing you log is sent anywhere.</p></div>';
+        '<p class="muted small" style="margin-top:12px">How this works, honestly: I\'m a built-in coach that reads your logs right here on this device and writes these messages from your numbers. The notes above are built from your logs on this device. Nothing is sent anywhere unless you use "Ask the Coach".</p></div>';
     }
 
     /* ---------------- coach view ---------------- */
@@ -2204,7 +2715,7 @@
       var notes = coachNotes();
       var html = '<h2 class="sect-title">Coach\'s Corner</h2>'+
         '<p class="muted" style="margin-top:4px">Your AI-style coach reads your actual logs — workouts, practices, meals, weights, effort, pain flags — and talks to you straight, like a coach, not a spreadsheet.</p>'+
-        coachChatHTML()+
+        coachChatHTML()+coachAskHTML()+
         '<h2 class="sect-title">The Breakdown</h2>';
       notes.forEach(function(n){
         html += '<div class="coach-card '+n.tone+'"><div class="who">Coach</div><h3>'+esc(n.title)+'</h3><p class="small" style="margin-top:2px">'+esc(n.body)+'</p></div>';
@@ -2219,6 +2730,7 @@
       }
       html += '<p class="muted small" style="margin-top:12px">Standing rules: stop any exercise that causes sharp pain and tell a parent or your trainer. Eat enough to fuel training and growth — this coach will never tell you to starve a workout.</p></div>';
       el.innerHTML = html;
+      bindCoachAsk();
     }
 
     /* ---------------- more view: badges, install, reminders, share, github ---------------- */
@@ -2342,6 +2854,9 @@
         '<div style="margin-top:10px"><label class="flabel" for="pfWeightEdit">Your current weight (lb)</label>'+
         '<input class="text-in" id="pfWeightEdit" type="number" inputmode="decimal" step="0.1" min="40" max="600" placeholder="e.g. 132.5" value="'+(profileWeight ? profileWeight.lbs : "")+'">'+
         '<p class="muted small" style="margin-top:4px">This comes from your Bodyweight log. Changing it here adds or updates today\'s weigh-in; your earlier weigh-ins stay in the history.</p></div>'+
+        '<div style="margin-top:10px"><label class="flabel" for="pfDesiredWeight">Your desired weight (lb, optional)</label>'+
+        '<input class="text-in" id="pfDesiredWeight" type="number" inputmode="decimal" step="0.1" min="40" max="600" placeholder="e.g. 140" value="'+(desiredWeight()===null?"":desiredWeight())+'">'+
+        '<p class="muted small" style="margin-top:4px">The bodyweight you\'re aiming for. The Weight Goal card on the Progress tab tracks start → current → desired from your weigh-ins — no target date, no prescribed pace. This is separate from your Physique Rating goal (0–100).</p></div>'+
         '<div style="margin-top:10px"><label class="flabel">Your goals — tap to pick as many as fit</label>'+
         '<div id="editGoalChips">'+goalChipsHTML(profileGoals())+'</div>'+
         '<p class="muted small" style="margin-top:4px">Pick one, pick five — the coach, the starter routine and the Meal Fuel Log all tailor themselves to the whole combination. Goals frame the advice only; they never set a calorie target for you — that number is always yours to type in.</p></div>'+
@@ -2397,6 +2912,14 @@
         var ageV = parseInt(document.getElementById("pfAgeEdit").value, 10);
         state.profile.age = (!isNaN(ageV) && ageV>=5 && ageV<=100) ? ageV : null;
         state.profile.heightIn = ht.heightIn;
+        var dwText = document.getElementById("pfDesiredWeight").value.trim();
+        if(dwText === ""){
+          state.profile.desiredWeight = null;
+        } else {
+          var dwNum = parseFloat(dwText);
+          if(isNaN(dwNum) || dwNum<40 || dwNum>600){ toast("Desired weight needs to be between 40 and 600 lb — or leave it blank."); return; }
+          state.profile.desiredWeight = Math.round(dwNum*10)/10;
+        }
         var picked = readChipValues(document.getElementById("editGoalChips"), "data-goalchip");
         state.profile.goals = picked;
         state.profile.goal = picked.length ? picked[0] : null; // legacy field kept in sync
