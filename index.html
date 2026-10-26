@@ -206,6 +206,22 @@
       .coach-card.warn{ border-color:#5a3a14; }
       .coach-card.bad{ border-color:#5c2323; }
       .coach-card .who{ font-size:11.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--faint); margin-bottom:3px; }
+      .chat-row{ display:flex; gap:10px; margin-top:10px; align-items:flex-start; }
+      .chat-av{
+        width:34px; height:34px; border-radius:50%; flex:none; background:var(--volt); color:var(--volt-ink);
+        font-family:"Barlow Condensed",sans-serif; font-weight:700; font-size:14px;
+        display:flex; align-items:center; justify-content:center;
+      }
+      .bubble{ background:var(--panel2); border:1px solid var(--line); border-radius:4px 14px 14px 14px; padding:11px 13px; font-size:15px; flex:1; }
+      .bubble b{ color:var(--volt); }
+      .tag-chip{
+        display:inline-flex; align-items:center; gap:6px; background:var(--panel2); border:1px solid var(--line);
+        color:var(--muted); border-radius:999px; padding:7px 12px; font-weight:700; font-size:13.5px; margin:0 6px 6px 0;
+      }
+      .tag-chip.on{ background:#1b2608; border-color:#3c5a12; color:var(--volt); }
+      .tag-chip button{ background:none; border:none; color:inherit; font-size:16px; padding:0; line-height:1; }
+      .meal-row{ display:flex; gap:12px; padding:11px 0; border-top:1px solid var(--line); align-items:flex-start; }
+      .meal-thumb{ width:64px; height:64px; flex:none; object-fit:cover; border-radius:10px; border:1px solid var(--line); background:var(--panel2); }
       .badge-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-top:12px; }
       .badge{
         background:var(--panel); border:1px solid var(--line); border-radius:12px;
@@ -442,13 +458,22 @@
           }).join("")+
           '<p class="muted small" style="margin-top:10px">Already following a plan — Session A/B here in the app, a sport program, or a trainer\'s plan? Stick with that. This is a starter suggestion for day one, not a replacement.</p>';
       }
-      return '<h2 class="sect-title">Starter Routine For Your Age</h2><div class="card" style="margin-top:10px">'+inner+
+      var gks = (typeof profileGoals === "function") ? profileGoals() : [];
+      var goalBlock;
+      if(gks.length){
+        goalBlock = '<div style="margin-top:12px;border-top:1px solid var(--line);padding-top:10px"><p style="font-weight:700">Tailored to your goals: '+esc(goalLabels().join(" · "))+'</p>'+
+          '<p class="muted small" style="margin-top:2px">The plan above stays the base — here\'s how each goal you picked bends it:</p>'+
+          gks.map(function(k){ return '<p class="small" style="margin-top:6px"><b>'+esc(goalLabelFor(k))+':</b> '+esc(GOALS[k].routine)+'</p>'; }).join("")+'</div>';
+      } else {
+        goalBlock = '<p class="muted small" style="margin-top:12px">Pick your goals under <b style="color:var(--ink)">Profile</b> below — as many as fit — and this routine gets tailored to the whole combination: what to emphasize, how hard to push, and how to fuel it.</p>';
+      }
+      return '<h2 class="sect-title">Starter Routine For Your Age</h2><div class="card" style="margin-top:10px">'+inner+goalBlock+
         '<p class="small" style="margin-top:12px"><b>Standing rule:</b> if something hurts, stop — don\'t push through pain — and tell a parent or coach.</p></div>';
     }
     var DAY_ORDER = [1,2,3,4,5,6,0]; // Monday first
     var DAY_NAMES = { 0:"Sunday", 1:"Monday", 2:"Tuesday", 3:"Wednesday", 4:"Thursday", 5:"Friday", 6:"Saturday" };
 
-    var XP = { set:10, exerciseDone:25, dayDone:60, trainer:80, weighIn:15, measures:20, photo:10 };
+    var XP = { set:10, exerciseDone:25, dayDone:60, trainer:80, weighIn:15, measures:20, photo:10, practice:30, meal:10 };
     var LEVEL_TITLES = ["Rookie","Prospect","Contender","Grinder","Workhorse","Beast Mode","All-Star","MVP","Hall of Famer","Built Different"];
 
     /* ---------------- storage ---------------- */
@@ -459,9 +484,13 @@
     var selectedDate = todayKey();
     var activeTab = "quest";
     var compareIds = { a:null, b:null };
+    var mealPhotoData = null;   // pending meal photo (data URI) waiting to be logged
+    var mealTagsSel = [];       // fuel tags currently toggled in the meal form
+    var FUEL_TAGS = ["Pre-workout","Post-workout","Protein-rich","Carb fuel","Snack","Team meal"];
+    var SPORT_PRESETS = ["Basketball","Football","Soccer","Track","Baseball","Softball","Swimming","Volleyball","Tennis","Lacrosse"];
 
     function blankState(){
-      return { profile:null, schedule:null, days:{}, weights:[], measures:[], photos:[], createdAt:Date.now() };
+      return { profile:null, schedule:null, days:{}, weights:[], measures:[], photos:[], physiqueHistory:[], sports:[], practices:[], meals:[], createdAt:Date.now() };
     }
     function loadState(){
       try{
@@ -470,6 +499,14 @@
         var s = JSON.parse(raw);
         if(!s || typeof s !== "object") return blankState();
         s.days = s.days || {}; s.weights = s.weights || []; s.measures = s.measures || []; s.photos = s.photos || [];
+        s.physiqueHistory = Array.isArray(s.physiqueHistory) ? s.physiqueHistory : [];
+        s.sports = Array.isArray(s.sports) ? s.sports : [];
+        s.practices = Array.isArray(s.practices) ? s.practices : [];
+        s.meals = Array.isArray(s.meals) ? s.meals : [];
+        if(s.profile && !Array.isArray(s.profile.goals)){
+          // Migrate the old single goal into a one-item list so nothing is wiped
+          s.profile.goals = s.profile.goal ? [s.profile.goal] : [];
+        }
         if(s.schedule && typeof s.schedule === "object"){
           var ns = {};
           for(var di=0; di<7; di++){ var sv = s.schedule[di]; ns[di] = (sv==="A"||sv==="B"||sv==="T") ? sv : null; }
@@ -482,7 +519,10 @@
       }catch(e){ return blankState(); }
     }
     function save(){
-      try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
+      try{
+        recordPhysiqueHistory(); // snapshot today's rating (once per day) so the journey is saved with the data
+        localStorage.setItem(LS_KEY, JSON.stringify(state));
+      }
       catch(e){ toast("Storage is full — delete a progress photo to free space."); }
     }
 
@@ -621,6 +661,8 @@
       xp += state.weights.length * XP.weighIn;
       xp += state.measures.length * XP.measures;
       xp += state.photos.length * XP.photo;
+      xp += (state.practices||[]).length * XP.practice;
+      xp += (state.meals||[]).length * XP.meal;
       return xp;
     }
     function levelFor(xp){
@@ -732,6 +774,8 @@
         { id:"weigh-5",      name:"Scale Regular",    desc:"Log your weight 5 times",         got: state.weights.length>=5 },
         { id:"measure-3",    name:"Tape Measure Pro", desc:"Log measurements 3 times",        got: state.measures.length>=3 },
         { id:"photo-1",      name:"Progress Pic",     desc:"Save your first progress photo",  got: state.photos.length>=1 },
+        { id:"prac-5",       name:"Game Day Regular", desc:"Log 5 sports practices",          got: (state.practices||[]).length>=5 },
+        { id:"meal-5",       name:"Fueled Up",        desc:"Log 5 meals in the Fuel Log",     got: (state.meals||[]).length>=5 },
         { id:"level-5",     name:"Level 5",          desc:"Reach level 5",                   got: levelFor(computeXP()).level>=5 }
       ];
     }
@@ -866,6 +910,72 @@
                parts:{ training:training, strength:strength, meas:meas },
                drivers:{ training:dTraining, strength:dStrength, meas:dMeas } };
     }
+    /* ---------------- physique rating history (the journey) ----------------
+       A snapshot of the computed rating, recorded at most once per day
+       whenever the app saves (workout check-off, weight log, measurement
+       log, photo, profile edit). Scores are only ever the live computed
+       rating from real logged data — never preset, never backfilled.
+       A fresh profile's first snapshot is honestly 0. */
+    function recordPhysiqueHistory(){
+      if(!state || !state.profile) return;
+      var score = computePhysiqueRating().score;
+      state.physiqueHistory = state.physiqueHistory || [];
+      var hist = state.physiqueHistory;
+      var tk = todayKey();
+      var last = hist[hist.length-1];
+      if(last && last.date === tk){ last.score = score; return; } // same day — keep the latest value
+      hist.push({ date: tk, score: score });
+    }
+    function physiqueJourneyHTML(r){
+      var hist = (state.physiqueHistory || []).slice().sort(function(a,b){ return a.date<b.date?-1:1; });
+      var g = physiqueGoal();
+      var goalTxt = g ? (' · Goal: '+g.lo+'–'+g.hi+(r.score < g.lo ? ' ('+(g.lo - r.score)+' pts away)' : r.score <= g.hi ? ' (in your band)' : ' (past it)')) : "";
+      if(hist.length < 2){
+        return '<div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">'+
+          '<p style="font-weight:700;font-size:16px">Your journey starts here: '+r.score+' / 100'+esc(goalTxt)+'</p>'+
+          '<p class="muted small" style="margin-top:4px">From today on, your score gets saved here every day it\'s calculated — so as you train, log weights and take measurements, you\'ll see exactly where you started and how far you\'ve climbed. Nothing is filled in ahead of time: every point in this history comes from your real logs.</p></div>';
+      }
+      var start = hist[0], cur = hist[hist.length-1];
+      var diff = cur.score - start.score;
+      var rows = hist.slice(-8).reverse().map(function(h){
+        return '<tr><td>'+esc(prettyDate(h.date))+'</td><td style="text-align:right;font-weight:700">'+h.score+' / 100</td></tr>';
+      }).join("");
+      return '<div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">'+
+        '<p style="font-weight:700;font-size:19px">Your journey: '+start.score+' &rarr; '+cur.score+' <span style="color:var(--volt)">('+(diff>0?"+":"")+diff+')</span></p>'+
+        '<p class="muted small" style="margin-top:3px">Started '+esc(prettyDate(start.date))+' · latest '+esc(prettyDate(cur.date))+(g ? ' · Goal: '+g.lo+'–'+g.hi : '')+'. Every point came from workouts you checked off, weights you logged, and measurements you took.</p>'+
+        '<table class="hist"><tr><th>Date</th><th style="text-align:right">Physique rating</th></tr>'+rows+'</table></div>';
+    }
+    /* ---------------- physique rating goal band (user-set, optional) ----------------
+       Each profile can set its own target range for the rating (e.g. 87–100).
+       It is a personal goal marker only — it never changes how the score is
+       computed, and nothing is preset for anyone. Stored on-device. */
+    function physiqueGoal(){
+      var g = state.profile && state.profile.physiqueGoal;
+      if(g && typeof g.lo==="number" && typeof g.hi==="number" && g.lo>=0 && g.hi<=100 && g.lo<=g.hi) return g;
+      return null;
+    }
+    function physiqueGoalHTML(r){
+      var g = physiqueGoal();
+      var status;
+      if(!g){
+        status = '<p class="muted small" style="margin-top:4px">No goal set yet. Pick the range you\'re aiming for — it\'s your target, nobody else\'s. The score itself still only moves from your training, strength and measurement progress.</p>';
+      } else if(r.score < g.lo){
+        status = '<p class="small" style="margin-top:4px"><b>Goal: '+g.lo+'–'+g.hi+'</b> · You\'re at '+r.score+' — <b style="color:var(--volt)">'+(g.lo - r.score)+' pts to reach your goal band</b>. Every logged workout, PR and check-in closes that gap.</p>';
+      } else if(r.score <= g.hi){
+        status = '<p class="small" style="margin-top:4px"><b>Goal: '+g.lo+'–'+g.hi+'</b> · <b style="color:var(--volt)">You\'re inside your goal band</b> at '+r.score+'. Now the game is holding it — consistency is what keeps you there.</p>';
+      } else {
+        status = '<p class="small" style="margin-top:4px"><b>Goal: '+g.lo+'–'+g.hi+'</b> · <b style="color:var(--volt)">You\'ve passed the top of your goal band</b> at '+r.score+'. Time to set a new one.</p>';
+      }
+      return '<div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">'+
+        '<p style="font-weight:700;font-size:16px">Your goal band</p>'+ status +
+        '<div class="form-grid" style="margin-top:10px">'+
+          '<div><label class="flabel" for="prGoalLo">Goal from</label><input class="text-in" id="prGoalLo" type="number" inputmode="numeric" min="0" max="100" step="1" placeholder="e.g. 87" value="'+(g?g.lo:"")+'"></div>'+
+          '<div><label class="flabel" for="prGoalHi">Goal to</label><input class="text-in" id="prGoalHi" type="number" inputmode="numeric" min="0" max="100" step="1" placeholder="e.g. 100" value="'+(g?g.hi:"")+'"></div>'+
+        '</div>'+
+        '<div class="btn-row"><button class="btn secondary" type="button" id="prGoalSave">'+(g?"Update goal":"Set my goal")+'</button></div>'+
+        (g?'<p class="muted small" style="margin-top:6px">Clear both boxes and tap Update goal to remove it.</p>':"")+
+      '</div>';
+    }
     function review_physique_card(){
       var r = computePhysiqueRating();
       var photoLine = state.photos.length===0
@@ -884,6 +994,8 @@
         scoreRow("Training & Consistency", r.parts.training, 40, r.drivers.training)+
         scoreRow("Strength", r.parts.strength, 30, r.drivers.strength)+
         scoreRow("Measurements", r.parts.meas, 30, r.drivers.meas)+
+        physiqueGoalHTML(r)+
+        physiqueJourneyHTML(r)+
         photoLine + caption +
         '<div class="btn-row"><button class="btn" type="button" id="prCta">Update Stats &amp; Photos</button></div>'+
       '</div>';
@@ -973,6 +1085,30 @@
         }
       } else {
         notes.push({ tone:"warn", title:"No weight trend yet", body:"Log your bodyweight on the Progress tab about once a week — same time of day, ideally morning. The chart needs data before it can tell you anything." });
+      }
+
+      // 6b) Sports practices this week
+      var wkPracs = practicesThisWeek();
+      if(wkPracs.length>=2){
+        var wkMins = wkPracs.reduce(function(a,p){ return a+(+p.minutes||0); },0);
+        notes.push({ tone:"good", title:"Athlete's week: "+wkPracs.length+" practices", body:"You logged "+wkPracs.length+" practices this week ("+wkMins+" minutes) on top of your gym days. That's a real two-way workload — it only pays off if sleep and food keep up with it. Recovery is where practice turns into progress." });
+      } else if((state.sports||[]).length && (state.practices||[]).length===0){
+        notes.push({ tone:"warn", title:"Practices aren't being logged", body:"You added "+state.sports.join(", ")+" as your sport"+(state.sports.length>1?"s":"")+" but no practices yet. Log them on the Progress tab — seeing gym plus practice in one place is how you catch weeks where the total load creeps too high." });
+      }
+
+      // 6c) Fuel check
+      var mealsToday = mealsOn(tk).length;
+      if(planFor(new Date()) && dayComplete(tk) && mealsToday===0){
+        notes.push({ tone:"warn", title:"Big session, no fuel logged", body:"Today's quest is done but the Meal Fuel Log is empty. Training is the stimulus — food is the building material. Get a real meal in, protein included, and snap it into the Fuel Log on the Progress tab." });
+      } else if(mealsToday>=2){
+        notes.push({ tone:"good", title:"Fueling like you mean it", body:mealsToday+" meals logged today. Consistent fuel is the most underrated part of getting stronger — your future self says thanks." });
+      }
+
+      // 6d) Goal game plan — advice combined across EVERY goal picked
+      var gks = profileGoals();
+      if(gks.length){
+        var gTips = gks.map(function(k){ return GOALS[k].coach; });
+        notes.push({ tone:"good", title:"Game plan: "+goalLabels().join(" + "), body:"You're chasing "+gks.length+" goal"+(gks.length>1?"s":"")+" at once, so the plan blends all of them — not just the first one on the list. "+gTips.join(" ") });
       }
 
       // 7) Default encouragement when nothing else fired
@@ -1110,6 +1246,7 @@
     function enterApp(){
       document.getElementById("gate").classList.add("hidden");
       document.getElementById("app").classList.remove("hidden");
+      save(); // seeds today's physique-rating snapshot so the journey starts tracking from the first open
       renderAll();
     }
 
@@ -1319,6 +1456,114 @@
     function sortedWeights(){ return state.weights.slice().sort(function(a,b){ return a.date<b.date?-1:1; }); }
     function sortedMeasures(){ return state.measures.slice().sort(function(a,b){ return a.date<b.date?-1:1; }); }
 
+    /* ---------------- practices & meals helpers ---------------- */
+    function sortedPractices(){ return (state.practices||[]).slice().sort(function(a,b){ return a.date<b.date?-1:(a.date>b.date?1:0); }); }
+    function sortedMeals(){ return (state.meals||[]).slice().sort(function(a,b){ return a.date<b.date?-1:(a.date>b.date?1:0); }); }
+    function mealsOn(k){ return (state.meals||[]).filter(function(m){ return m.date===k; }); }
+    function dayCalories(k){ // manual/label entries only — never estimated from photos
+      return mealsOn(k).reduce(function(a,m){ return a + (m.kcal!=null ? m.kcal : 0); }, 0);
+    }
+    function practicesThisWeek(){
+      var start = keyOf(addDays(new Date(),-6)), tk = todayKey();
+      return sortedPractices().filter(function(p){ return p.date>=start && p.date<=tk; });
+    }
+    function currentTimeVal(){
+      var n = new Date();
+      return pad(n.getHours())+":"+pad(n.getMinutes());
+    }
+
+    /* ---------------- goals (labels the user picks — frame advice only) ----------------
+       Goals are MULTI-select: a profile can hold any combination at once,
+       and the coach, the starter routine and the Meal Fuel Log all read the
+       whole combination together. The goals NEVER compute or prescribe a
+       calorie target. The target is always typed in by the user — goals only
+       change how the app talks about the numbers.
+       Each goal carries three texts: frame (Meal Fuel Log / calorie framing),
+       coach (Coach's Corner game plan) and routine (starter-routine emphasis). */
+    var GOALS = {
+      maintain: { label:"Maintain",
+        frame:"Hold your weight steady and fuel every session — eat around your target, keep protein up, and let your strength numbers do the talking.",
+        coach:"Holding steady is the mission — keep sessions consistent and eat around your target so strength keeps creeping up without the scale drifting.",
+        routine:"Keep the full-body mix as written — balanced strength work across the week is exactly what maintaining takes." },
+      bulk:     { label:"Bulk (Gain Mass)",
+        frame:"Build size: eat a little above your target day after day so the scale and your lifts creep up together. A slow, steady surplus beats a free-for-all.",
+        coach:"Size comes from a steady surplus plus progressive overload — add weight to the bar in small jumps and eat a little above target every day, rest days included.",
+        routine:"Bias toward the big compound lifts (squat, press, row, deadlift pattern) and push the last set close to hard; the extra food and sleep do the growing between sessions." },
+      cut:      { label:"Cut (Lose Fat)",
+        frame:"Lean out: sit a little under your target, keep protein high and training heavy, so what you lose is fat, not strength. Modest and steady — crash deficits kill workouts.",
+        coach:"Leaning out works when training stays heavy and protein stays high — sit a little under target and keep the deficit modest, never a crash.",
+        routine:"Keep the loads as heavy as form allows even in a deficit — that's the signal that keeps muscle while fat comes off. Easy walking on rest days adds burn without costing recovery." },
+      recomp:   { label:"Cut + Build Muscle",
+        frame:"Recomp: hover right around your target with high protein and hard training. Progress runs both ways at once, so it's slower — the tape and the mirror move before the scale does.",
+        coach:"Recomp is a patience game: eat right around target, protein high, and judge progress by the tape, the photos and your lifts — not week-to-week scale noise.",
+        routine:"Train the compounds hard and track every weight — progress shows up as lifts inching up while measurements inch down." },
+      losegain: { label:"Lose Weight + Gain Muscle",
+        frame:"Both directions at once: sit just under your target, keep protein high at every meal, and train like you mean it. The scale moves slowly because muscle is replacing fat — trust the tape, the photos, and your lifts over the number.",
+        coach:"Both directions at once means a small deficit, high protein at every meal, and zero skipped sessions — consistency is the whole trick.",
+        routine:"Prioritize the compound lifts and keep rest days truly restful — recovery is when the muscle side of the equation happens." },
+      muscle:   { label:"Build Muscle",
+        frame:"Muscle is built in the gym and finished in the kitchen: train hard, hit your target, and get protein at every meal so the work has material to build with.",
+        coach:"Muscle grows from hard sets close to your limit, enough protein, and sleep — chase small weight or rep increases week to week.",
+        routine:"On the last set of the presses and rows, slow the lowering down (about 3 seconds) and push the top set to a strong 8–9 effort — never sloppy, never a max." },
+      strength: { label:"Build Strength",
+        frame:"Chasing numbers on the bar? Then fuel like it — eat at or a little above your target, because PRs don't happen on empty. Sleep is part of the program too.",
+        coach:"Strength is a skill: heavy, clean reps with full rest between sets. Fuel at or above target — PRs don't happen on empty.",
+        routine:"Work the first lift of each session a little heavier — fewer reps per set, longer rests (up to 2–3 minutes) — and keep the rest of the plan as written." },
+      endurance:{ label:"Improve Endurance",
+        frame:"Endurance runs on carbs and hydration: fuel before long sessions, top up after, and don't fear eating more on big training days — that's the job.",
+        coach:"Endurance is built on carbs, hydration and showing up for the long sessions — eat more on big days; that's the job, not a cheat.",
+        routine:"Keep the strength work, finish sessions with the core work unbroken, and add one longer, easier cardio day in the week if your schedule allows." },
+      athletic: { label:"Get Faster / Athletic Performance",
+        frame:"Speed and power need full tanks: eat to your target, protein for repair, carbs for explosiveness. Underfueling is the fastest way to get slower.",
+        coach:"Speed and power need full tanks and fresh legs — don't stack your hardest gym work the day before a game or a speed session.",
+        routine:"Emphasize the squats, lunges and hip thrusts — that's your sprint and jump engine — and keep every landing and change of direction crisp, never sloppy." },
+      athendur: { label:"Athletic Endurance",
+        frame:"Built to last: steady fuel all day, carbs before long sessions, and a real meal after — endurance is earned by athletes who eat enough to recover for the next one.",
+        coach:"Going the distance means fueling before long sessions and eating a real meal right after — underfueling is what actually ends endurance progress.",
+        routine:"Keep the strength base, and treat rest days as part of the plan — that's when endurance adaptations actually lock in." },
+      lose:     { label:"Lose Weight",
+        frame:"Steady wins: sit a little under your target most days, keep protein high and keep training, so the weight that leaves is the right weight. No crash diets — they eat muscle and energy first.",
+        coach:"Steady, modest deficit, protein high, training non-negotiable — the weight that leaves should be the right weight. No crash diets.",
+        routine:"Keep every session on the calendar; adding steps or easy cardio on rest days moves the needle more than cutting food harder ever will." },
+      gain:     { label:"Gain Weight",
+        frame:"Gaining takes consistency: a little above your target, every day, even on rest days. If the scale stalls for two weeks, nudge the target up a touch — it's your number to set.",
+        coach:"Gaining is a consistency contest: a little above target every single day. If the scale stalls for two weeks, nudge your own target up a touch.",
+        routine:"Chase progressive overload on the compounds — growing strength plus a steady surplus is how the weight that arrives is useful weight." },
+      health:   { label:"Stay Active / General Health",
+        frame:"No extremes needed: eat around your target, build most meals from real food, and let regular training do the heavy lifting for your health.",
+        coach:"No extremes: regular sessions, real food around your target, good sleep. Boring on paper, undefeated in practice.",
+        routine:"The plan as written is the whole prescription — a few balanced days a week beats any complicated split you'll quit by week three." },
+      sport:    { label:"Train for a Sport",
+        frame:"Your sport is the main event and the gym backs it up: fuel before practices and games, recover after, and keep total load in view so you peak instead of burn out.",
+        coach:"Your sport is the main event; the gym is support staff. Fuel before practices and games, and watch total load so you peak instead of burning out.",
+        routine:"Keep gym days away from your hardest practice days when you can, and favor the single-leg and core work — that's injury-proofing for your sport." },
+      custom:   { label:"Custom",
+        frame:"Your goal, your words — the log just keeps score. Train hard, fuel to your target, and let your own definition of progress lead.",
+        coach:"Your custom goal leads: everything in your logs gets read against what you wrote, so keep logging and the trend lines will tell the story.",
+        routine:"Follow the plan as written and judge it against your own goal — if a piece of it fights your goal, that's a coach or parent conversation, not a reason to skip." }
+    };
+    /* All goal keys this profile has picked (migrates the old single goal). */
+    function profileGoals(){
+      var p = state.profile; if(!p) return [];
+      var list = Array.isArray(p.goals) ? p.goals : (p.goal ? [p.goal] : []);
+      var out = [];
+      list.forEach(function(k){ if(GOALS[k] && out.indexOf(k)<0) out.push(k); });
+      return out;
+    }
+    function goalLabelFor(k){
+      if(k==="custom"){
+        var c = state.profile && state.profile.goalCustom;
+        return c ? c : "Custom goal";
+      }
+      return GOALS[k].label;
+    }
+    function goalLabels(){ return profileGoals().map(goalLabelFor); }
+    function goalLabel(){
+      var ls = goalLabels();
+      return ls.length ? ls.join(" + ") : null;
+    }
+    function caloriesVisible(){ return !(state.profile && state.profile.showCalories === false); } // default: shown
+
     function renderProgress(){
       var el = document.getElementById("view-progress");
       var s = progressScore();
@@ -1422,12 +1667,29 @@
           }).join("")+'</div>' : "")+
       '</div>';
 
+      html += practicesCardHTML() + mealsCardHTML();
+
       el.innerHTML = html;
 
       var prCta = document.getElementById("prCta");
       if(prCta) prCta.addEventListener("click", scrollToPhotosCard);
+      var prGoalSave = document.getElementById("prGoalSave");
+      if(prGoalSave) prGoalSave.addEventListener("click", function(){
+        var loV = document.getElementById("prGoalLo").value.trim();
+        var hiV = document.getElementById("prGoalHi").value.trim();
+        if(loV==="" && hiV===""){ // both blank = clear the goal
+          state.profile.physiqueGoal = null;
+          save(); toast("Goal band cleared."); renderAll(); return;
+        }
+        var lo = parseInt(loV,10), hi = parseInt(hiV,10);
+        if(isNaN(lo) || isNaN(hi) || lo<0 || hi>100 || lo>hi){ toast("Goal needs two numbers 0–100, low first — e.g. 87 and 100."); return; }
+        state.profile.physiqueGoal = { lo:lo, hi:hi };
+        save(); toast("Goal set: "+lo+"–"+hi+". Now go earn it."); renderAll();
+      });
       var prPhotoLine = document.getElementById("prPhotoLine");
       if(prPhotoLine) prPhotoLine.addEventListener("click", scrollToPhotosCard);
+      bindPractices(el);
+      bindMeals(el);
 
       document.getElementById("wAdd").addEventListener("click", function(){
         var d = document.getElementById("wDate").value || todayKey();
@@ -1490,12 +1752,239 @@
     function mStat(k, v){ return '<div class="stat"><div class="v">'+(v==null?"—":v)+'</div><div class="k">'+k+' (in)</div></div>'; }
     function orDash(v){ return v==null? "—" : v; }
 
+    /* ---------------- sports practices (optional, bonus — never touches streaks) ---------------- */
+    function practicesCardHTML(){
+      var sports = state.sports || [];
+      var pracs = sortedPractices();
+      var wk = practicesThisWeek();
+      var wkMins = wk.reduce(function(a,p){ return a+(+p.minutes||0); }, 0);
+      var html = '<h2 class="sect-title">Sports Practices</h2><div class="card" style="margin-top:10px">'+
+        '<p class="muted small">Play a sport too? Track practices here — they\'re bonus work on top of gym days, fully optional, and they <b style="color:var(--ink)">never change your workout streak</b>: streaks follow your gym schedule only.</p>'+
+        (wk.length ? '<p class="small" style="margin-top:8px">This week: <b style="color:var(--volt)">'+wk.length+' practice'+(wk.length>1?"s":"")+' · '+wkMins+' min</b> logged.</p>' : "")+
+        '<div style="margin-top:12px"><label class="flabel">Your sports</label><div style="margin-top:2px">'+
+        (sports.length ? sports.map(function(s){ return '<span class="tag-chip on">'+esc(s)+'<button type="button" data-delsport="'+esc(s)+'" aria-label="Remove '+esc(s)+'">&times;</button></span>'; }).join("") : '<span class="muted small">None added yet — tap a sport below or type your own.</span>')+
+        '</div><div>'+
+        SPORT_PRESETS.filter(function(p){ return sports.indexOf(p)<0; }).map(function(p){ return '<button type="button" class="tag-chip" data-addsport="'+esc(p)+'">+ '+esc(p)+'</button>'; }).join("")+
+        '</div>'+
+        '<div style="display:flex;gap:10px;margin-top:4px"><input class="text-in" id="sportCustom" type="text" maxlength="30" placeholder="Or type your sport — e.g. skateboarding"><button class="btn secondary" type="button" id="sportAddBtn" style="width:auto;flex:none;padding:12px 16px;min-height:48px">Add</button></div></div>';
+      html += '<div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px"><label class="flabel">Log a practice</label>'+
+        (sports.length
+          ? '<div class="form-grid" style="margin-top:6px">'+
+            '<div><label class="flabel" for="prDate">Date</label><input class="text-in" id="prDate" type="date" value="'+todayKey()+'"></div>'+
+            '<div><label class="flabel" for="prSport">Sport</label><select class="text-in" id="prSport">'+sports.map(function(s){ return '<option value="'+esc(s)+'">'+esc(s)+'</option>'; }).join("")+'</select></div>'+
+            '<div><label class="flabel" for="prMins">Minutes</label><input class="text-in" id="prMins" type="number" inputmode="numeric" min="1" max="600" step="5" placeholder="e.g. 90"></div>'+
+            '<div><label class="flabel" for="prNote">Note (optional)</label><input class="text-in" id="prNote" type="text" maxlength="80" placeholder="e.g. scrimmage + handles work"></div></div>'+
+            '<div class="btn-row"><button class="btn" type="button" id="prAdd">Log practice · +30 XP</button></div>'
+          : '<p class="muted small" style="margin-top:6px">Add a sport above first, then you can log practices for it.</p>')+
+        '</div>';
+      if(pracs.length){
+        html += '<table class="hist"><tr><th>Date</th><th>Sport</th><th>Min</th><th></th></tr>'+
+          pracs.slice(-8).reverse().map(function(p){
+            return '<tr><td>'+esc(prettyDate(p.date))+'</td><td>'+esc(p.sport)+(p.note?'<div class="muted small">'+esc(p.note)+'</div>':"")+'</td><td>'+p.minutes+'</td><td style="text-align:right"><button type="button" class="tip-btn" data-delprac="'+p.id+'">Delete</button></td></tr>';
+          }).join("")+'</table>';
+      }
+      html += '</div>';
+      return html;
+    }
+    function bindPractices(el){
+      function addSport(name){
+        name = (name||"").trim();
+        if(!name) return;
+        if((state.sports||[]).some(function(s){ return s.toLowerCase()===name.toLowerCase(); })){ toast("That sport is already on your list."); return; }
+        state.sports.push(name); save(); renderProgress();
+      }
+      el.querySelectorAll("[data-addsport]").forEach(function(b){ b.addEventListener("click", function(){ addSport(b.getAttribute("data-addsport")); }); });
+      el.querySelectorAll("[data-delsport]").forEach(function(b){ b.addEventListener("click", function(){
+        var s = b.getAttribute("data-delsport");
+        state.sports = state.sports.filter(function(x){ return x!==s; });
+        save(); renderProgress();
+      });});
+      var ab = document.getElementById("sportAddBtn");
+      if(ab) ab.addEventListener("click", function(){ addSport(document.getElementById("sportCustom").value); });
+      var pa = document.getElementById("prAdd");
+      if(pa) pa.addEventListener("click", function(){
+        var mins = parseInt(document.getElementById("prMins").value, 10);
+        if(isNaN(mins) || mins<1){ toast("Add how many minutes the practice ran."); return; }
+        state.practices.push({ id:"pr"+Date.now(), date: document.getElementById("prDate").value || todayKey(),
+          sport: document.getElementById("prSport").value, minutes: mins, note: document.getElementById("prNote").value.trim() });
+        save(); toast("Practice logged · +30 XP"); renderAll();
+      });
+      el.querySelectorAll("[data-delprac]").forEach(function(b){ b.addEventListener("click", function(){
+        state.practices = state.practices.filter(function(p){ return p.id !== b.getAttribute("data-delprac"); });
+        save(); renderAll();
+      });});
+    }
+
+    /* ---------------- meal fuel log (photo-based; calories are manual/label only) ---------------- */
+    function mealsCardHTML(){
+      var meals = sortedMeals();
+      var today = mealsOn(todayKey());
+      var showCal = caloriesVisible();
+      var gKeys = profileGoals();
+      var html = '<h2 class="sect-title">Meal Fuel Log</h2><div class="card" style="margin-top:10px">'+
+        '<p class="muted small">Snap a photo of what you ate and log it as fuel. Photos are saved <b style="color:var(--ink)">only on this device</b> and never uploaded. Straight talk: this app can\'t read calories off a photo — there\'s no food-scanning AI in a static app — so any calories here come only from what you type in off a label.</p>';
+      if(gKeys.length){
+        html += '<div style="margin-top:12px"><p class="small"><b>Your goals: '+esc(goalLabels().join(" · "))+'</b></p>'+
+          '<p class="muted small" style="margin-top:2px">Every goal you picked shapes how this log reads your fueling — together, not one at a time:</p>'+
+          gKeys.map(function(k){ return '<p class="small" style="margin-top:6px"><b>'+esc(goalLabelFor(k))+':</b> '+esc(GOALS[k].frame)+'</p>'; }).join("")+'</div>';
+      } else {
+        html += '<p class="muted small" style="margin-top:12px">No goals picked yet — set them under <b style="color:var(--ink)">More → Profile</b> (pick as many as fit: Maintain, Bulk, Cut, Build Strength, Train for a Sport, Custom — your call) and this log frames everything around the whole combination.</p>';
+      }
+      if(showCal){
+        var target = state.profile.calorieTarget || null;
+        var total = dayCalories(todayKey());
+        var counted = today.filter(function(m){ return m.kcal!=null; }).length;
+        html += '<div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">'+
+          '<label class="flabel" for="calTarget">Your daily calorie target (you set this — the app never picks it)</label>'+
+          '<div style="display:flex;gap:10px"><input class="text-in" id="calTarget" type="number" inputmode="numeric" min="0" step="50" placeholder="e.g. 2500" value="'+(target||"")+'">'+
+          '<button class="btn secondary" type="button" id="calTargetSave" style="width:auto;flex:none;padding:12px 16px;min-height:48px">Save</button></div>';
+        if(target){
+          var diff = total - target;
+          var pct = Math.min(100, Math.round(total/target*100));
+          html += '<div style="margin-top:12px"><div style="display:flex;justify-content:space-between;font-size:14px;font-weight:600"><span>Today: '+total+' kcal logged</span><span class="muted">Target '+target+'</span></div>'+
+            '<div class="score-bar"><div style="width:'+pct+'%"></div></div>'+
+            '<p class="small" style="margin-top:5px">'+(diff<0 ? '<b style="color:var(--volt)">'+Math.abs(diff)+' kcal under</b> your target so far today — that\'s your deficit so far.' : diff>0 ? '<b>'+diff+' kcal over</b> your target today — a surplus day. One day is just data, not a verdict.' : '<b style="color:var(--volt)">Right on target</b> today.')+(counted<today.length ? ' ('+(today.length-counted)+' meal(s) today have no calories entered, so the real total is higher.)' : '')+'</p></div>';
+        } else {
+          html += '<p class="muted small" style="margin-top:8px">No target set — set one above and today\'s logged calories total up against it here, with your deficit or surplus.</p>';
+        }
+        html += '<p class="muted small" style="margin-top:10px"><b style="color:var(--ink)">Honest note:</b> all of this is just a recommendation tool, not medical advice. If you\'re under 18, calorie tracking honestly isn\'t recommended — growing athletes should focus on fueling to train and grow, and talk to a parent, coach, or doctor about nutrition. You can still use it if you want, and you can hide this whole section anytime under More → Profile.</p></div>';
+      }
+      html += '<div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">'+
+        '<div class="btn-row" style="margin-top:0"><label class="btn secondary" for="mealPhotoInput" style="margin:0">'+(mealPhotoData?"Photo attached — tap to change":"Take / add a meal photo")+'</label>'+
+        '<input id="mealPhotoInput" type="file" accept="image/*" class="hidden"></div>'+
+        (mealPhotoData ? '<img src="'+mealPhotoData+'" alt="The meal you are about to log" style="width:100%;height:180px;object-fit:cover;border-radius:12px;margin-top:10px;border:1px solid var(--line)">' : "")+
+        '<div class="form-grid">'+
+          '<div class="full"><label class="flabel" for="mealName">What did you eat?</label><input class="text-in" id="mealName" type="text" maxlength="60" placeholder="e.g. Chicken, rice &amp; broccoli"></div>'+
+          '<div><label class="flabel" for="mealDate">Date</label><input class="text-in" id="mealDate" type="date" value="'+todayKey()+'"></div>'+
+          '<div><label class="flabel" for="mealTime">Time</label><input class="text-in" id="mealTime" type="time" value="'+currentTimeVal()+'"></div>'+
+          (showCal ? '<div class="full"><label class="flabel" for="mealKcal">Calories (from the label — optional)</label><input class="text-in" id="mealKcal" type="number" inputmode="numeric" min="0" max="5000" step="1" placeholder="Leave blank if you don\'t know"></div>' : "")+
+        '</div>'+
+        '<label class="flabel" style="margin-top:12px">Fuel tags</label><div>'+
+          FUEL_TAGS.map(function(t){ return '<button type="button" class="tag-chip'+(mealTagsSel.indexOf(t)>=0?" on":"")+'" data-mealtag="'+esc(t)+'">'+esc(t)+'</button>'; }).join("")+
+        '</div>'+
+        '<div class="btn-row"><button class="btn" type="button" id="mealAdd">Log meal · +10 XP</button></div></div>';
+      if(meals.length){
+        html += '<div>'+ meals.slice(-10).reverse().map(function(m){
+          return '<div class="meal-row">'+
+            (m.data ? '<img class="meal-thumb" src="'+m.data+'" alt="Photo of '+esc(m.name)+'">' : '<div class="meal-thumb" style="display:flex;align-items:center;justify-content:center;color:var(--faint);font-size:10px;font-weight:700;text-align:center">NO<br>PHOTO</div>')+
+            '<div style="flex:1"><div style="font-weight:700">'+esc(m.name)+'</div>'+
+            '<div class="muted small">'+esc(prettyDate(m.date))+(m.time?' · '+esc(m.time):"")+((showCal && m.kcal!=null)?' · '+m.kcal+' kcal':"")+'</div>'+
+            (m.tags && m.tags.length ? '<div style="margin-top:5px">'+m.tags.map(function(t){ return '<span class="tag-chip on" style="padding:3px 9px;font-size:12px;margin-bottom:0">'+esc(t)+'</span>'; }).join("")+'</div>' : "")+
+            '</div><button type="button" class="tip-btn" data-delmeal="'+m.id+'">Delete</button></div>';
+        }).join("")+'</div>';
+      } else {
+        html += '<p class="muted small" style="margin-top:12px">No meals logged yet. Next thing you eat, snap it and log it — fuel is part of training.</p>';
+      }
+      html += '</div>';
+      return html;
+    }
+    function bindMeals(el){
+      var mpi = document.getElementById("mealPhotoInput");
+      if(mpi) mpi.addEventListener("change", function(){
+        var f = mpi.files && mpi.files[0]; if(!f) return;
+        var reader = new FileReader();
+        reader.onload = function(){
+          var img = new Image();
+          img.onload = function(){
+            var maxW = 700, scale = Math.min(1, maxW/img.width);
+            var c = document.createElement("canvas");
+            c.width = Math.round(img.width*scale); c.height = Math.round(img.height*scale);
+            c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+            mealPhotoData = c.toDataURL("image/jpeg", 0.75);
+            renderProgress();
+          };
+          img.src = reader.result;
+        };
+        reader.readAsDataURL(f);
+      });
+      el.querySelectorAll("[data-mealtag]").forEach(function(b){ b.addEventListener("click", function(){
+        var t = b.getAttribute("data-mealtag"); var i = mealTagsSel.indexOf(t);
+        if(i>=0) mealTagsSel.splice(i,1); else mealTagsSel.push(t);
+        renderProgress();
+      });});
+      var add = document.getElementById("mealAdd");
+      if(add) add.addEventListener("click", function(){
+        var name = document.getElementById("mealName").value.trim();
+        if(!name){ toast("Name the meal first — what did you eat?"); return; }
+        var kcal = null;
+        var kEl = document.getElementById("mealKcal");
+        if(kEl && kEl.value.trim()!==""){ var kv = parseInt(kEl.value, 10); if(!isNaN(kv) && kv>=0) kcal = kv; }
+        state.meals.push({ id:"m"+Date.now(), date: document.getElementById("mealDate").value || todayKey(),
+          time: document.getElementById("mealTime").value || "", name: name, tags: mealTagsSel.slice(), kcal: kcal, data: mealPhotoData });
+        mealPhotoData = null; mealTagsSel = [];
+        save(); toast("Meal logged · +10 XP"); renderAll();
+      });
+      var ts = document.getElementById("calTargetSave");
+      if(ts) ts.addEventListener("click", function(){
+        var v = parseInt(document.getElementById("calTarget").value, 10);
+        if(isNaN(v) || v<=0){ state.profile.calorieTarget = null; save(); toast("Calorie target cleared."); renderAll(); return; }
+        state.profile.calorieTarget = v;
+        save(); toast("Target set: "+v+" kcal — your number, your call."); renderAll();
+      });
+      el.querySelectorAll("[data-delmeal]").forEach(function(b){ b.addEventListener("click", function(){
+        state.meals = state.meals.filter(function(m){ return m.id !== b.getAttribute("data-delmeal"); });
+        save(); renderAll();
+      });});
+    }
+
+    /* ---------------- AI-style coach chat (rule-based, from your own logs) ---------------- */
+    function coachChatHTML(){
+      var tk = todayKey();
+      var msgs = [];
+      var streak = currentStreak();
+      var bits = [];
+      if(streak>0) bits.push("you're riding a <b>"+streak+"-workout streak</b>");
+      var doneKeys = Object.keys(state.days).filter(function(k){ return dayComplete(k); }).sort();
+      if(doneKeys.length){
+        var lk = doneKeys[doneKeys.length-1], lt = state.days[lk].type;
+        bits.push("last session banked: <b>"+(lt==="T"?"Trainer Session":SESSIONS[lt].label)+"</b> on "+prettyDate(lk));
+      }
+      msgs.push("What's up, "+esc(state.profile.name)+". "+(bits.length ? "Here's what your logs are telling me: "+bits.join(" · ")+"." : "Your logs are a blank page so far — let's write the first line. Check off a workout and I'll have real reads for you."));
+      var typeToday = planFor(new Date());
+      if(typeToday){
+        if(dayComplete(tk)) msgs.push("Today's quest — <b>"+(typeToday==="T"?"Trainer Session":SESSIONS[typeToday].label)+"</b> — is already cleared. Work's done. Now the other half of training: eat, hydrate, sleep.");
+        else if(typeToday==="T") msgs.push("Today is a <b>trainer day</b>. Nothing to check off lift-by-lift here — just show up, check in, and let your trainer run it. That's your next move.");
+        else msgs.push("Today's quest is <b>"+SESSIONS[typeToday].label+"</b> and it's still open. That's your next move — everything else today is bonus.");
+      } else {
+        var nd = new Date(); var guard = 0;
+        while(!planFor(nd) && guard<8){ nd = addDays(nd,1); guard++; }
+        msgs.push("Today's a <b>rest day</b> on your schedule. Next up: <b>"+SESSIONS[planFor(nd)].label+"</b> · "+prettyDate(keyOf(nd))+". Recover today so you show up dangerous.");
+      }
+      var chatGoals = profileGoals();
+      if(chatGoals.length){
+        msgs.push("Your goals on the board: <b>"+goalLabels().map(function(l){ return esc(l); }).join("</b> + <b>")+"</b>. Everything I read — food, load, recovery — gets judged against all of them together, so the advice you get here is built for the whole combination.");
+      }
+      var extra = [];
+      var wkP = practicesThisWeek();
+      if(wkP.length){
+        var wkM = wkP.reduce(function(a,p){ return a+(+p.minutes||0); }, 0);
+        extra.push("<b>"+wkP.length+" practice"+(wkP.length>1?"s":"")+"</b> this week ("+wkM+" min)");
+      }
+      var mt = mealsOn(tk).length;
+      if(mt) extra.push("<b>"+mt+" meal"+(mt>1?"s":"")+"</b> in the Fuel Log today");
+      if(extra.length) msgs.push("Also on the board: "+extra.join(" · ")+". Gym + sport + fuel, stacked together — that's how athletes are actually built.");
+      var hist = (state.physiqueHistory||[]).slice().sort(function(a,b){ return a.date<b.date?-1:1; });
+      if(hist.length>=2){
+        var dScore = hist[hist.length-1].score - hist[0].score;
+        if(dScore>0) msgs.push("And look at this: your Physique Rating has climbed <b>"+hist[0].score+" → "+hist[hist.length-1].score+"</b> (+"+dScore+"). That's not talk — that's your own check-ins adding up.");
+        else if(dScore===0) msgs.push("Your Physique Rating is holding at <b>"+hist[hist.length-1].score+"</b>. Holding for a week is fine — the next jump comes from one more consistent week, not one heroic day.");
+      }
+      msgs.push(streak>=3 ? "Protect the streak. One session at a time, no zero days on the days YOU picked. Let's work." : "One session at a time. Finish the next quest in front of you and the numbers take care of themselves. Let's work.");
+      var rows = msgs.map(function(m, i){
+        return '<div class="chat-row"><div class="chat-av"'+(i>0?' style="visibility:hidden"':"")+' aria-hidden="true">AI</div><div class="bubble">'+m+'</div></div>';
+      }).join("");
+      return '<div class="card" style="margin-top:12px"><div style="font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)">AI Coach · from your logs</div>'+rows+
+        '<p class="muted small" style="margin-top:12px">How this works, honestly: I\'m a built-in coach that reads your logs right here on this device and writes these messages from your numbers. I\'m not a live AI chat, and nothing you log is sent anywhere.</p></div>';
+    }
+
     /* ---------------- coach view ---------------- */
     function renderCoach(){
       var el = document.getElementById("view-coach");
       var notes = coachNotes();
       var html = '<h2 class="sect-title">Coach\'s Corner</h2>'+
-        '<p class="muted" style="margin-top:4px">Your coach reads your actual logs — checkoffs, weights, effort, pain flags — and calls it straight. No generic tips, no fluff.</p>';
+        '<p class="muted" style="margin-top:4px">Your AI-style coach reads your actual logs — workouts, practices, meals, weights, effort, pain flags — and talks to you straight, like a coach, not a spreadsheet.</p>'+
+        coachChatHTML()+
+        '<h2 class="sect-title">The Breakdown</h2>';
       notes.forEach(function(n){
         html += '<div class="coach-card '+n.tone+'"><div class="who">Coach</div><h3>'+esc(n.title)+'</h3><p class="small" style="margin-top:2px">'+esc(n.body)+'</p></div>';
       });
@@ -1606,12 +2095,25 @@
       /* profile */
       html += '<h2 class="sect-title">Profile</h2><div class="card" style="margin-top:10px">'+
         '<p>Signed in as <b>'+esc(state.profile.name)+'</b> · Level '+levelFor(computeXP()).level+' '+levelFor(computeXP()).title+'</p>'+
-        '<p style="margin-top:6px">Age: <b>'+(state.profile.age ? state.profile.age : 'not set yet')+'</b> · Height: <b>'+(state.profile.heightIn ? esc(heightLabel(state.profile.heightIn)) : 'not set yet')+'</b></p>'+
+        '<p style="margin-top:6px">Age: <b>'+(state.profile.age ? state.profile.age : 'not set yet')+'</b> · Height: <b>'+(state.profile.heightIn ? esc(heightLabel(state.profile.heightIn)) : 'not set yet')+'</b> · Goals: <b>'+(goalLabel() ? esc(goalLabel()) : 'not set yet')+'</b></p>'+
         '<div style="margin-top:10px"><label class="flabel" for="pfAgeEdit">Your age (roughly is fine)</label>'+
         '<input class="text-in" id="pfAgeEdit" type="number" inputmode="numeric" step="1" placeholder="e.g. 13" value="'+(state.profile.age || "")+'"></div>'+
         '<div style="margin-top:10px"><label class="flabel">Your height — feet &amp; inches</label>'+
         heightInputsHTML("ht", state.profile.heightIn || null)+'</div>'+
-        '<div class="btn-row"><button class="btn secondary" type="button" id="htSave">Save age &amp; height</button></div>'+
+        '<div style="margin-top:10px"><label class="flabel">Your goals — tap to pick as many as fit</label>'+
+        '<div id="pfGoalChips">'+
+          Object.keys(GOALS).map(function(k){ return '<button type="button" class="tag-chip'+(profileGoals().indexOf(k)>=0?" on":"")+'" data-goalchip="'+k+'">'+esc(GOALS[k].label)+'</button>'; }).join("")+
+        '</div>'+
+        '<p class="muted small" style="margin-top:4px">Pick one, pick five — the coach, the starter routine and the Meal Fuel Log all tailor themselves to the whole combination. Goals frame the advice only; they never set a calorie target for you — that number is always yours to type in.</p></div>'+
+        '<div style="margin-top:10px"><label class="flabel" for="pfGoalCustom">Custom goal in your words (used when Custom is picked above)</label>'+
+        '<input class="text-in" id="pfGoalCustom" type="text" maxlength="60" placeholder="Type it in your own words" value="'+esc(state.profile.goalCustom || "")+'"></div>'+
+        '<div style="margin-top:10px"><label class="flabel" for="pfCalEdit">Calories section in the Meal Fuel Log</label>'+
+        '<select class="text-in" id="pfCalEdit">'+
+          '<option value="on"'+(state.profile.showCalories===false?"":" selected")+'>Show calories section</option>'+
+          '<option value="off"'+(state.profile.showCalories===false?" selected":"")+'>Hide it — photo fuel log only</option>'+
+        '</select>'+
+        '<p class="muted small" style="margin-top:4px">Hide it and no calorie target, total, or deficit shows anywhere for this profile — just meal photos, names and fuel tags.</p></div>'+
+        '<div class="btn-row"><button class="btn secondary" type="button" id="htSave">Save profile</button></div>'+
         '<p class="muted small" style="margin-top:6px">Your data lives only in this browser on this device. Switching phones or clearing browser data starts you fresh — that\'s the trade-off of a free, private, no-account app.</p>'+
         '<div class="btn-row"><button class="btn secondary" type="button" id="lockBtn">'+(state.profile.pin?"Lock app":"Sign out view")+'</button>'+
         '<button class="btn danger" type="button" id="wipeBtn">Erase everything</button></div>'+
@@ -1630,12 +2132,23 @@
         });
         save(); toast("Schedule saved — quests and streaks follow your days now."); renderAll();
       });
+      el.querySelectorAll("[data-goalchip]").forEach(function(chip){
+        chip.addEventListener("click", function(){ chip.classList.toggle("on"); });
+      });
       document.getElementById("htSave").addEventListener("click", function(){
         var ht = readHeightInputs("ht");
         if(!ht.ok){ toast("Height looks off — feet 3–8, inches 0–11."); return; }
         var ageV = parseInt(document.getElementById("pfAgeEdit").value, 10);
         state.profile.age = (!isNaN(ageV) && ageV>=5 && ageV<=100) ? ageV : null;
         state.profile.heightIn = ht.heightIn;
+        var picked = [];
+        el.querySelectorAll("[data-goalchip].on").forEach(function(chip){ picked.push(chip.getAttribute("data-goalchip")); });
+        state.profile.goals = picked;
+        state.profile.goal = picked.length ? picked[0] : null; // legacy field kept in sync
+        var goalCustom = document.getElementById("pfGoalCustom");
+        if(goalCustom) state.profile.goalCustom = goalCustom.value.trim() || null;
+        var calSel = document.getElementById("pfCalEdit");
+        if(calSel) state.profile.showCalories = calSel.value !== "off";
         save(); toast("Saved."); renderAll();
       });
       document.getElementById("icsBtn").addEventListener("click", downloadICS);
