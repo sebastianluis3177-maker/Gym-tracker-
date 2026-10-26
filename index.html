@@ -504,7 +504,7 @@
     async function aiText(msgs){ var p = await aiGet(); if(!p) throw new Error("AI isn\u2019t connected yet (see AI LAYER in the code)."); return await p.text(msgs); }
     function aiAge(){ return (state && state.profile && state.profile.age) || null; }
     function isAdult(){ var a = aiAge(); return !!a && a >= 18; }
-    var KIDP = 'You are a friendly coach reviewing a progress photo from a young athlete. Do NOT grade, rate or comment on body shape, size, weight, muscle, leanness or appearance in any way. Only comment on posture and stance, and on whether the photo is good for comparing later (same spot, lighting, framing). Reply ONLY with JSON: {"valid":boolean,"summary":"one short encouraging sentence","strengths":[posture positives],"focus":[photo or posture tips]}. If no person is clearly shown, set valid false and explain in summary.';
+    var KIDP = 'You are a friendly coach reviewing a progress photo from a young athlete. Do NOT grade, rate or comment on body shape, size, weight, muscle, leanness or appearance in any way. Only comment on posture and stance, and on whether the photo is good for comparing later (same spot, lighting, framing). posture = how upright and balanced the stance looks; photo = how useful the photo is for comparing later. Reply ONLY with JSON: {"valid":boolean,"posture":number 0-100,"photo":number 0-100,"summary":"one short encouraging sentence","strengths":[posture positives],"focus":[photo or posture tips]}. If no person is clearly shown, set valid false and explain in summary.';
     var aiConsented = {};
     function aiConsent(key, what){
       if(aiConsented[key]) return true;
@@ -551,14 +551,14 @@
       if(physScanStatus) h += '<p class="muted small" style="margin-top:6px">'+esc(physScanStatus)+'</p>';
       var r = physScanResult;
       if(r && r.kid){
-        h += '<p class="small" style="margin-top:10px">'+esc(r.summary)+'</p><p class="small"><b>Looking good:</b> '+r.strengths.map(esc).join(" \u00b7 ")+'</p><p class="small"><b>Tips:</b> '+r.focus.map(esc).join(" \u00b7 ")+'</p>';
+        h += '<div style="display:flex;gap:10px;margin-top:10px"><div style="flex:1;text-align:center"><div style="font-size:36px;font-weight:800;color:var(--volt);line-height:1">'+r.posture+'</div><div class="muted small">Posture / 100</div></div><div style="flex:1;text-align:center"><div style="font-size:36px;font-weight:800;color:var(--volt);line-height:1">'+r.photo+'</div><div class="muted small">Photo quality / 100</div></div></div><p class="small" style="margin-top:10px">'+esc(r.summary)+'</p><p class="small"><b>Looking good:</b> '+r.strengths.map(esc).join(" \u00b7 ")+'</p><p class="small"><b>Tips:</b> '+r.focus.map(esc).join(" \u00b7 ")+'</p>';
       } else if(r){
-        h += '<div style="margin-top:10px"><div style="font-size:44px;font-weight:800;color:var(--volt);line-height:1">'+esc(r.overall)+'</div><div class="small">'+esc(r.summary)+'</div></div>'+
-          Object.keys(r.grades).map(function(k){ return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid var(--line)"><span>'+esc(k)+'</span><b>'+esc(r.grades[k])+'</b></div>'; }).join("")+
+        h += '<div style="margin-top:10px"><div style="font-size:44px;font-weight:800;color:var(--volt);line-height:1">'+r.overall+'<span style="font-size:16px;font-weight:600"> / 100</span><div style="font-size:18px">'+letterFor(r.overall)+'</div></div><div class="small">'+esc(r.summary)+'</div></div>'+
+          Object.keys(r.grades).map(function(k){ return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid var(--line)"><span>'+esc(k)+'</span><b>'+r.grades[k]+' / 100 \u00b7 '+letterFor(r.grades[k])+'</b></div>'; }).join("")+
           '<p class="small" style="margin-top:8px"><b>Strengths:</b> '+r.strengths.map(esc).join(" \u00b7 ")+'</p><p class="small"><b>Bring up:</b> '+r.focus.map(esc).join(" \u00b7 ")+'</p>';
       }
       var hist = (state.aiScans||[]).slice(-5).reverse();
-      if(hist.length) h += '<p class="muted small" style="margin-top:10px">Past reads: '+hist.map(function(s){ return esc(prettyDate(s.date))+" \u2014 "+esc(s.overall); }).join(" \u00b7 ")+'</p>';
+      if(hist.length) h += '<p class="muted small" style="margin-top:10px">Past reads: '+hist.map(function(s){ return esc(prettyDate(s.date))+" \u2014 "+s.overall+"/100"; }).join(" \u00b7 ")+'</p>';
       return h+'</div>';
     }
     function bindPhysiqueScan(){
@@ -567,15 +567,15 @@
         if(!aiConsent("phys","This photo will be sent to an AI service for a visual physique read.")) return;
         b.disabled = true; physScanStatus = "Scanning\u2026"; renderProgress();
         try{
-          var kid = !isAdult(); var r = await aiJSON(kid ? KIDP : 'You are a supportive strength coach giving a general visual read of this physique photo for training purposes. Do NOT estimate body fat or weight and do not judge health. Reply ONLY with JSON: {"valid":boolean,"overall":"letter grade A+ to D","summary":"one short sentence","grades":{"Shoulders & arms":"letter","Chest & back":"letter","Core":"letter","Legs":"letter","Symmetry":"letter"},"strengths":[string],"focus":[string]}. If the photo does not clearly show a physique, set valid false and explain in summary. Be honest and encouraging.', checkinPhotoData);
+          var kid = !isAdult(); var r = await aiJSON(kid ? KIDP : 'You are a supportive strength coach giving a general visual read of this physique photo for training purposes. Do NOT estimate body fat or weight and do not judge health. Reply ONLY with JSON: {"valid":boolean,"overall":number 0-100,"summary":"one short sentence","grades":{"Shoulders & arms":number 0-100,"Chest & back":number 0-100,"Core":number 0-100,"Legs":number 0-100,"Symmetry":number 0-100},"strengths":[string],"focus":[string]}. If the photo does not clearly show a physique, set valid false and explain in summary. Be honest and encouraging.', checkinPhotoData);
           if(!r.valid){ physScanResult = null; physScanStatus = r.summary || "Couldn\u2019t read that photo \u2014 try a clearer one."; }
           else if(kid){
-            physScanResult = { kid:true, summary:String(r.summary||""), strengths:(r.strengths||[]).map(String).slice(0,3), focus:(r.focus||[]).map(String).slice(0,3) };
+            physScanResult = { kid:true, posture:Math.max(0,Math.min(100,Math.round(+r.posture||0))), photo:Math.max(0,Math.min(100,Math.round(+r.photo||0))), summary:String(r.summary||""), strengths:(r.strengths||[]).map(String).slice(0,3), focus:(r.focus||[]).map(String).slice(0,3) };
             physScanStatus = "Posture and photo tips only.";
           }
           else {
-            var g = {}; Object.keys(r.grades||{}).forEach(function(k){ g[String(k).slice(0,30)] = String(r.grades[k]).slice(0,3); });
-            physScanResult = { overall:String(r.overall||"").slice(0,3), summary:String(r.summary||""), grades:g, strengths:(r.strengths||[]).map(String).slice(0,4), focus:(r.focus||[]).map(String).slice(0,4) };
+            var g = {}; Object.keys(r.grades||{}).forEach(function(k){ g[String(k).slice(0,30)] = Math.max(0,Math.min(100,Math.round(+r.grades[k]||0))); });
+            physScanResult = { overall:Math.max(0,Math.min(100,Math.round(+r.overall||0))), summary:String(r.summary||""), grades:g, strengths:(r.strengths||[]).map(String).slice(0,4), focus:(r.focus||[]).map(String).slice(0,4) };
             physScanStatus = "Visual estimate only.";
             state.aiScans = (state.aiScans||[]).concat([{ date:todayKey(), overall:physScanResult.overall }]).slice(-30); save();
           }
