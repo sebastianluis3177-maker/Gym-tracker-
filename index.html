@@ -488,6 +488,16 @@
     var mealTagsSel = [];       // fuel tags currently toggled in the meal form
     var FUEL_TAGS = ["Pre-workout","Post-workout","Protein-rich","Carb fuel","Snack","Team meal"];
     var SPORT_PRESETS = ["Basketball","Football","Soccer","Track","Baseball","Softball","Swimming","Volleyball","Tennis","Lacrosse"];
+    var POSITION_GROUPS = [
+      { sport:"Basketball", positions:["Point Guard","Shooting Guard","Small Forward","Power Forward","Center"] },
+      { sport:"Football", positions:["Quarterback (QB)","Wide Receiver (WR)","Running Back (RB)","Tight End (TE)","Offensive Line","Defensive Line","Linebacker (LB)","Defensive Back (DB)","Kicker","Punter"] },
+      { sport:"Soccer", positions:["Striker","Winger","Attacking Midfielder","Central Midfielder","Defensive Midfielder","Center Back","Fullback","Goalkeeper"] },
+      { sport:"Track", positions:["Sprinter","Distance Runner","Hurdler","Long Jumper","High Jumper","Thrower"] },
+      { sport:"Baseball / Softball", positions:["Pitcher","Catcher","Infielder","Outfielder"] },
+      { sport:"Swimming", positions:["Freestyle","Backstroke","Breaststroke","Butterfly"] },
+      { sport:"Volleyball", positions:["Setter","Outside Hitter","Middle Blocker","Libero"] },
+      { sport:"Lacrosse", positions:["Attack","Midfielder","Defender","Goalie"] }
+    ];
 
     function blankState(){
       return { profile:null, schedule:null, days:{}, weights:[], measures:[], photos:[], physiqueHistory:[], sports:[], practices:[], meals:[], createdAt:Date.now() };
@@ -507,6 +517,10 @@
           // Migrate the old single goal into a one-item list so nothing is wiped
           s.profile.goals = s.profile.goal ? [s.profile.goal] : [];
         }
+        if(s.profile){
+          // New profile fields start empty on older profiles — existing data is never backfilled or removed.
+          s.profile.positions = cleanStringList(s.profile.positions);
+        }
         if(s.schedule && typeof s.schedule === "object"){
           var ns = {};
           for(var di=0; di<7; di++){ var sv = s.schedule[di]; ns[di] = (sv==="A"||sv==="B"||sv==="T") ? sv : null; }
@@ -514,6 +528,14 @@
         } else if(s.profile){
           // Profile created before schedules were customizable (Sebastian's) — keep his Mon/Wed/Thu plan as-is
           s.schedule = { 0:null, 1:"A", 2:null, 3:"B", 4:"T", 5:null, 6:null };
+        }
+        if(s.profile){
+          var savedSessions = parseInt(s.profile.sessionsPerWeek, 10);
+          var scheduledCount = scheduleWorkoutCount(s.schedule);
+          // Keep the saved days exactly as they are. Older profiles get a target
+          // from their existing schedule; an under-filled schedule gets the
+          // minimum target so the app can prompt for more days, not erase any.
+          s.profile.sessionsPerWeek = (savedSessions>=2 && savedSessions<=7) ? savedSessions : (scheduledCount>=2 ? scheduledCount : 2);
         }
         return s;
       }catch(e){ return blankState(); }
@@ -562,10 +584,52 @@
       return { ok:true, heightIn: ft*12 + inch };
     }
 
+    /* ---------------- profile list helpers ---------------- */
+    function cleanStringList(values){
+      var out = [];
+      if(!Array.isArray(values)) return out;
+      values.forEach(function(v){
+        var text = String(v == null ? "" : v).trim();
+        if(text && !out.some(function(x){ return x.toLowerCase()===text.toLowerCase(); })) out.push(text);
+      });
+      return out;
+    }
+    function profilePositions(){
+      return state && state.profile ? cleanStringList(state.profile.positions) : [];
+    }
+    function currentWeightEntry(){
+      if(!state || !Array.isArray(state.weights) || !state.weights.length) return null;
+      var sorted = state.weights.slice().sort(function(a,b){ return a.date<b.date?-1:(a.date>b.date?1:0); });
+      return sorted[sorted.length-1];
+    }
+
     /* ---------------- schedule picker (choose your own workout days) ---------------- */
-    function schedulePickerHTML(prefix, current){
+    function scheduleWorkoutCount(schedule){
+      if(!schedule || typeof schedule !== "object") return 0;
+      return Object.keys(schedule).filter(function(d){ return schedule[d]==="A" || schedule[d]==="B" || schedule[d]==="T"; }).length;
+    }
+    function validSessionsPerWeek(value, schedule){
+      var n = parseInt(value, 10);
+      if(n>=2 && n<=7) return n;
+      var count = scheduleWorkoutCount(schedule);
+      return count>=2 ? count : 3;
+    }
+    function scheduleFeedbackText(count, target){
+      if(count===target) return count+" of "+target+" sessions set — ready to save.";
+      if(count<target) return count+" of "+target+" sessions set — choose "+(target-count)+" more workout "+(target-count===1?"day":"days")+".";
+      return count+" of "+target+" sessions set — "+(count-target)+" too many. Switch "+(count-target===1?"a day":"days")+" back to Rest or raise Sessions per week.";
+    }
+    function schedulePickerHTML(prefix, current, sessionsPerWeek){
       var cur = current || {};
-      return DAY_ORDER.map(function(dn){
+      var target = validSessionsPerWeek(sessionsPerWeek, cur);
+      var count = scheduleWorkoutCount(cur);
+      var sessionOptions = "";
+      for(var n=2;n<=7;n++) sessionOptions += '<option value="'+n+'"'+(target===n?" selected":"")+'>'+n+' sessions per week</option>';
+      var html = '<div><label class="flabel" for="'+prefix+'-sessions">Sessions per week</label>'+
+        '<select class="text-in" id="'+prefix+'-sessions">'+sessionOptions+'</select>'+
+        '<p class="muted small" style="margin-top:4px">Session A, Session B and Trainer days count. Rest days do not.</p>'+
+        '<p class="small" id="'+prefix+'-session-count" aria-live="polite" style="margin-top:8px"><b>'+esc(scheduleFeedbackText(count, target))+'</b></p></div>';
+      html += DAY_ORDER.map(function(dn){
         var v = cur[dn] || "";
         function opt(val, label){ return '<option value="'+val+'"'+(v===val?" selected":"")+'>'+label+'</option>'; }
         return '<div class="sched-row"><span class="sched-day">'+DAY_NAMES[dn]+'</span>'+
@@ -573,16 +637,44 @@
           opt("","Rest")+opt("A","Session A")+opt("B","Session B")+opt("T","Trainer session")+
           '</select></div>';
       }).join("");
+      return html;
+    }
+    function updateScheduleFeedback(prefix){
+      var feedback = document.getElementById(prefix+"-session-count");
+      if(!feedback) return;
+      var targetEl = document.getElementById(prefix+"-sessions");
+      var target = targetEl ? parseInt(targetEl.value, 10) : 0;
+      var count = 0;
+      DAY_ORDER.forEach(function(dn){
+        var sel = document.getElementById(prefix+"-sched-"+dn);
+        if(sel && sel.value) count++;
+      });
+      feedback.innerHTML = "<b>"+esc(scheduleFeedbackText(count, target))+"</b>";
+    }
+    function bindSchedulePicker(root, prefix){
+      if(!root) return;
+      var target = document.getElementById(prefix+"-sessions");
+      if(target) target.addEventListener("change", function(){ updateScheduleFeedback(prefix); });
+      DAY_ORDER.forEach(function(dn){
+        var sel = document.getElementById(prefix+"-sched-"+dn);
+        if(sel) sel.addEventListener("change", function(){ updateScheduleFeedback(prefix); });
+      });
+      updateScheduleFeedback(prefix);
     }
     function readSchedulePicker(prefix){
-      var sch = {}, any = false;
+      var targetEl = document.getElementById(prefix+"-sessions");
+      var target = targetEl ? parseInt(targetEl.value, 10) : NaN;
+      if(isNaN(target) || target<2 || target>7) return { error:"Sessions per week must be a whole number from 2 to 7." };
+      var sch = {}, count = 0;
       DAY_ORDER.forEach(function(dn){
         var sel = document.getElementById(prefix+"-sched-"+dn);
         var v = sel ? sel.value : "";
         sch[dn] = (v==="A"||v==="B"||v==="T") ? v : null;
-        if(sch[dn]) any = true;
+        if(sch[dn]) count++;
       });
-      return any ? sch : null; // null = no workout day picked at all
+      if(count<2) return { error:"Pick at least 2 workout days — Session A, Session B or Trainer. Rest days do not count." };
+      if(count!==target) return { error:scheduleFeedbackText(count, target)+" Your schedule was not saved." };
+      return { schedule:sch, sessionsPerWeek:target, count:count };
     }
     function weekScheduledKeys(monDate){ // scheduled date-keys in the Mon-start week containing monDate
       var out = [];
@@ -1173,7 +1265,7 @@
           '<p class="lede">Your workouts as a game. Check off sets, earn XP, keep the streak alive on the days YOU pick. Your profile and data live only on this phone, never uploaded anywhere.</p>'+
           '<div class="card" style="margin-top:22px">'+
             '<h2 style="font-size:22px">Create your profile</h2>'+
-            '<p class="muted small" style="margin-top:4px">Takes 10 seconds. This is a local profile on this device only — no email, no password, no account online.</p>'+
+            '<p class="muted small" style="margin-top:4px">Set up the basics now — every field here can be changed later. This is a local profile on this device only — no email, no password, no account online.</p>'+
             '<div style="margin-top:14px"><label class="flabel" for="pfName">Your name</label>'+
             '<input class="text-in" id="pfName" type="text" maxlength="24" placeholder="e.g. Sebastian" autocomplete="off"></div>'+
             '<div style="margin-top:12px"><label class="flabel" for="pfPin">Optional 4-digit PIN (locks the app on this phone)</label>'+
@@ -1183,6 +1275,21 @@
             '<div style="margin-top:12px"><label class="flabel">Your height (optional)</label>'+
             heightInputsHTML("pf", null)+
             '<p class="muted small" style="margin-top:4px">Feet and inches. You can add or change height and age anytime under More → Profile.</p></div>'+
+            '<div style="margin-top:12px"><label class="flabel" for="pfStartingWeight">Your starting weight (lb, optional)</label>'+
+            '<input class="text-in" id="pfStartingWeight" type="number" inputmode="decimal" min="40" max="600" step="0.1" placeholder="e.g. 132.5">'+
+            '<p class="muted small" style="margin-top:4px">If you enter it, this becomes your first Bodyweight log entry today. Later weigh-ins update the current weight shown on your profile.</p></div>'+
+            '<div style="margin-top:14px"><label class="flabel">Your goals — tap to pick as many as fit</label>'+
+            '<div id="setupGoalChips">'+goalChipsHTML([])+'</div>'+
+            '<p class="muted small" style="margin-top:4px">Goals shape the coach, routine and fuel advice together. They never set a calorie target for you.</p>'+
+            '<div style="margin-top:10px"><label class="flabel" for="setupGoalCustom">Custom goal in your words (used when Custom is picked above)</label>'+
+            '<input class="text-in" id="setupGoalCustom" type="text" maxlength="60" placeholder="Type it in your own words"></div></div>'+
+            '<div style="margin-top:14px"><label class="flabel">Your sports — tap to pick as many as you play</label>'+
+            '<div id="setupSportChips">'+sportChipsHTML([])+'</div>'+
+            '<p class="muted small" style="margin-top:4px">These pre-fill your Sports Practices list, so you never have to enter the same sports twice.</p>'+
+            '<div style="display:flex;gap:10px;margin-top:4px"><input class="text-in" id="setupSportCustom" type="text" maxlength="30" placeholder="Or type another sport"><button class="btn secondary" type="button" id="setupSportAdd" style="width:auto;flex:none;padding:12px 16px;min-height:48px">Add</button></div></div>'+
+            '<div style="margin-top:14px"><label class="flabel">Your positions — tap to pick as many as you play</label>'+
+            '<div id="setupPositionChips">'+positionChipsHTML([])+'</div>'+
+            '<div style="display:flex;gap:10px;margin-top:8px"><input class="text-in" id="setupPositionCustom" type="text" maxlength="40" placeholder="Or type another position"><button class="btn secondary" type="button" id="setupPositionAdd" style="width:auto;flex:none;padding:12px 16px;min-height:48px">Add</button></div></div>'+
             '<div style="margin-top:16px"><label class="flabel">Your workout days</label>'+
             '<p class="muted small">Pick what happens each day: Session A, Session B, a trainer session (check-in only — your trainer runs it), or rest. Not everybody has a trainer — that\'s fine, just leave those days on a session or rest. You can change this anytime under More → My Schedule.</p>'+
             schedulePickerHTML("pf", null)+'</div>'+
@@ -1190,6 +1297,10 @@
           '</div>'+
           '<p class="muted small" style="margin-top:14px">Got this link from a friend? Perfect — make your own profile above. You get your own quests, XP and streaks on your phone. Nobody can see anybody else\'s data.</p>'+
           '</div>';
+        bindChipToggles(gate);
+        bindSchedulePicker(gate, "pf");
+        bindCustomChipInput(gate, "setupSportCustom", "setupSportAdd", "setupSportChips", "data-sportchip", false);
+        bindCustomChipInput(gate, "setupPositionCustom", "setupPositionAdd", "setupPositionChips", "data-positionchip", true);
         document.getElementById("pfCreate").addEventListener("click", function(){
           var name = document.getElementById("pfName").value.trim();
           var pin = document.getElementById("pfPin").value.trim();
@@ -1199,10 +1310,27 @@
           if(!ht.ok){ toast("Height looks off — feet 3–8, inches 0–11. Or leave both blank."); return; }
           var ageV = parseInt(document.getElementById("pfAge").value, 10);
           var age = (!isNaN(ageV) && ageV>=5 && ageV<=100) ? ageV : null;
-          var sch = readSchedulePicker("pf");
-          if(!sch){ toast("Pick at least one workout day — that's your schedule."); return; }
-          state.schedule = sch;
-          state.profile = { name:name, pin: pin || null, heightIn: ht.heightIn, age: age };
+          var weightText = document.getElementById("pfStartingWeight").value.trim();
+          var startingWeight = null;
+          if(weightText!==""){
+            startingWeight = parseFloat(weightText);
+            if(isNaN(startingWeight) || startingWeight<40 || startingWeight>600){ toast("Starting weight needs to be between 40 and 600 lb — or leave it blank."); return; }
+            startingWeight = Math.round(startingWeight*10)/10;
+          }
+          var pickedSchedule = readSchedulePicker("pf");
+          if(pickedSchedule.error){ toast(pickedSchedule.error); return; }
+          var setupGoals = readChipValues(document.getElementById("setupGoalChips"), "data-goalchip");
+          var setupSports = readChipValues(document.getElementById("setupSportChips"), "data-sportchip");
+          var setupPositions = readChipValues(document.getElementById("setupPositionChips"), "data-positionchip");
+          var setupGoalCustom = document.getElementById("setupGoalCustom").value.trim() || null;
+          state.schedule = pickedSchedule.schedule;
+          state.sports = setupSports;
+          state.profile = {
+            name:name, pin: pin || null, heightIn: ht.heightIn, age: age,
+            goals: setupGoals, goal: setupGoals.length ? setupGoals[0] : null, goalCustom: setupGoalCustom,
+            positions: setupPositions, sessionsPerWeek: pickedSchedule.sessionsPerWeek
+          };
+          if(startingWeight!==null) state.weights.push({ date:todayKey(), lbs:startingWeight });
           save(); unlocked = true;
           toast("Profile created. Let's get to work, "+name+".");
           enterApp();
@@ -1563,6 +1691,99 @@
       return ls.length ? ls.join(" + ") : null;
     }
     function caloriesVisible(){ return !(state.profile && state.profile.showCalories === false); } // default: shown
+
+    /* ---------------- profile goal / sport / position pickers ---------------- */
+    function goalChipsHTML(selected){
+      var picked = Array.isArray(selected) ? selected : [];
+      return Object.keys(GOALS).map(function(k){
+        return '<button type="button" class="tag-chip'+(picked.indexOf(k)>=0?" on":"")+'" data-goalchip="'+k+'">'+esc(GOALS[k].label)+'</button>';
+      }).join("");
+    }
+    function positionPresetValue(group, position){ return group+" — "+position; }
+    function sportChipsHTML(selected){
+      var picked = cleanStringList(selected);
+      var values = SPORT_PRESETS.slice();
+      picked.forEach(function(p){
+        if(!values.some(function(v){ return v.toLowerCase()===p.toLowerCase(); })) values.push(p);
+      });
+      return values.map(function(v){
+        var isOn = picked.some(function(p){ return p.toLowerCase()===v.toLowerCase(); });
+        var label = picked.filter(function(p){ return p.toLowerCase()===v.toLowerCase(); })[0] || v;
+        return '<button type="button" class="tag-chip'+(isOn?" on":"")+'" data-sportchip="'+esc(label)+'">'+esc(label)+'</button>';
+      }).join("");
+    }
+    function positionChipsHTML(selected){
+      var picked = cleanStringList(selected);
+      var presetValues = [];
+      var html = POSITION_GROUPS.map(function(group){
+        var chips = group.positions.map(function(position){
+          var value = positionPresetValue(group.sport, position);
+          presetValues.push(value);
+          var isOn = picked.some(function(p){ return p.toLowerCase()===value.toLowerCase(); });
+          return '<button type="button" class="tag-chip'+(isOn?" on":"")+'" data-positionchip="'+esc(value)+'">'+esc(position)+'</button>';
+        }).join("");
+        return '<div style="margin-top:8px"><p class="small" style="font-weight:700;margin-bottom:5px">'+esc(group.sport)+'</p>'+chips+'</div>';
+      }).join("");
+      var customs = picked.filter(function(p){ return !presetValues.some(function(v){ return v.toLowerCase()===p.toLowerCase(); }); });
+      html += '<div style="margin-top:8px"><p class="small" style="font-weight:700;margin-bottom:5px">Your custom positions</p><span data-custom-position-list>'+
+        customs.map(function(p){ return '<button type="button" class="tag-chip on" data-positionchip="'+esc(p)+'">'+esc(p)+'</button>'; }).join("")+
+        '</span></div>';
+      return html;
+    }
+    function bindChipToggles(root){
+      if(!root) return;
+      root.querySelectorAll("[data-goalchip], [data-sportchip], [data-positionchip]").forEach(function(chip){
+        chip.addEventListener("click", function(){ chip.classList.toggle("on"); });
+      });
+    }
+    function readChipValues(root, attribute){
+      if(!root) return [];
+      var values = [];
+      root.querySelectorAll("["+attribute+"].on").forEach(function(chip){ values.push(chip.getAttribute(attribute)); });
+      return cleanStringList(values);
+    }
+    function addCustomChip(container, attribute, value){
+      if(!container) return;
+      var existing = null;
+      container.querySelectorAll("["+attribute+"]").forEach(function(chip){
+        if(chip.getAttribute(attribute).toLowerCase()===value.toLowerCase()) existing = chip;
+      });
+      if(existing){ existing.classList.add("on"); return; }
+      var chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "tag-chip on";
+      chip.setAttribute(attribute, value);
+      chip.textContent = value;
+      chip.addEventListener("click", function(){ chip.classList.toggle("on"); });
+      container.appendChild(chip);
+    }
+    function bindCustomChipInput(root, inputId, buttonId, containerId, attribute, isPosition){
+      var button = document.getElementById(buttonId);
+      var input = document.getElementById(inputId);
+      if(!button || !input) return;
+      function add(){
+        var value = input.value.trim();
+        if(!value) return;
+        var container = document.getElementById(containerId);
+        if(isPosition && container){
+          var existingPosition = null;
+          container.querySelectorAll("["+attribute+"]").forEach(function(chip){
+            if(chip.getAttribute(attribute).toLowerCase()===value.toLowerCase()) existingPosition = chip;
+          });
+          if(existingPosition) existingPosition.classList.add("on");
+          else {
+            var customList = container.querySelector("[data-custom-position-list]");
+            addCustomChip(customList || container, attribute, value);
+          }
+        } else {
+          addCustomChip(container, attribute, value);
+        }
+        input.value = "";
+        input.focus();
+      }
+      button.addEventListener("click", add);
+      input.addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); add(); } });
+    }
 
     function renderProgress(){
       var el = document.getElementById("view-progress");
@@ -2039,10 +2260,20 @@
         }).join("")+'</div>';
 
       /* my schedule */
+      var currentSchedule = effectiveSchedule();
+      var currentScheduleCount = scheduleWorkoutCount(currentSchedule);
+      var currentSessionsTarget = validSessionsPerWeek(state.profile.sessionsPerWeek, currentSchedule);
+      var schedulePrompt = "";
+      if(currentScheduleCount<2){
+        schedulePrompt = '<p class="small" style="margin-top:8px"><b>Your saved schedule has only '+currentScheduleCount+' workout '+(currentScheduleCount===1?"day":"days")+'.</b> Add workout days below to reach your Sessions per week setting — your existing days have not been changed or removed.</p>';
+      } else if(currentScheduleCount!==currentSessionsTarget){
+        schedulePrompt = '<p class="small" style="margin-top:8px"><b>Your saved schedule has '+currentScheduleCount+' workout days, but Sessions per week is set to '+currentSessionsTarget+'.</b> Adjust either one below so they match — nothing has been changed yet.</p>';
+      }
       html += '<h2 class="sect-title">My Schedule</h2><div class="card" style="margin-top:10px">'+
         '<p>Your workout days are yours to set — quests, streaks, XP and the Progress Score all follow <b>your</b> days. A rest day never breaks a streak; only a missed day you picked does.</p>'+
         '<p class="muted small" style="margin-top:6px">No trainer? No problem — set that day to Session A or B, or rest. Trainer days stay check-in only: no programmed exercises, your trainer runs those.</p>'+
-        '<div style="margin-top:8px">'+schedulePickerHTML("ms", effectiveSchedule())+'</div>'+
+        schedulePrompt+
+        '<div style="margin-top:8px">'+schedulePickerHTML("ms", currentSchedule, currentSessionsTarget)+'</div>'+
         '<div class="btn-row"><button class="btn" type="button" id="schedSave">Save my schedule</button></div>'+
       '</div>';
 
@@ -2093,20 +2324,34 @@
       '</div>';
 
       /* profile */
+      var profileWeight = currentWeightEntry();
+      var profileSports = state.sports || [];
+      var profilePositionList = profilePositions();
       html += '<h2 class="sect-title">Profile</h2><div class="card" style="margin-top:10px">'+
         '<p>Signed in as <b>'+esc(state.profile.name)+'</b> · Level '+levelFor(computeXP()).level+' '+levelFor(computeXP()).title+'</p>'+
-        '<p style="margin-top:6px">Age: <b>'+(state.profile.age ? state.profile.age : 'not set yet')+'</b> · Height: <b>'+(state.profile.heightIn ? esc(heightLabel(state.profile.heightIn)) : 'not set yet')+'</b> · Goals: <b>'+(goalLabel() ? esc(goalLabel()) : 'not set yet')+'</b></p>'+
+        '<p style="margin-top:6px">Age: <b>'+(state.profile.age ? state.profile.age : 'not set yet')+'</b> · Height: <b>'+(state.profile.heightIn ? esc(heightLabel(state.profile.heightIn)) : 'not set yet')+'</b> · Current weight: <b>'+(profileWeight ? profileWeight.lbs+' lb' : 'not set yet')+'</b></p>'+
+        '<p style="margin-top:6px">Goals: <b>'+(goalLabel() ? esc(goalLabel()) : 'not set yet')+'</b></p>'+
+        '<p style="margin-top:6px">Sports: <b>'+(profileSports.length ? esc(profileSports.join(" · ")) : 'not set yet')+'</b></p>'+
+        '<p style="margin-top:6px">Positions: <b>'+(profilePositionList.length ? esc(profilePositionList.join(" · ")) : 'not set yet')+'</b></p>'+
         '<div style="margin-top:10px"><label class="flabel" for="pfAgeEdit">Your age (roughly is fine)</label>'+
         '<input class="text-in" id="pfAgeEdit" type="number" inputmode="numeric" step="1" placeholder="e.g. 13" value="'+(state.profile.age || "")+'"></div>'+
         '<div style="margin-top:10px"><label class="flabel">Your height — feet &amp; inches</label>'+
         heightInputsHTML("ht", state.profile.heightIn || null)+'</div>'+
+        '<div style="margin-top:10px"><label class="flabel" for="pfWeightEdit">Your current weight (lb)</label>'+
+        '<input class="text-in" id="pfWeightEdit" type="number" inputmode="decimal" step="0.1" min="40" max="600" placeholder="e.g. 132.5" value="'+(profileWeight ? profileWeight.lbs : "")+'">'+
+        '<p class="muted small" style="margin-top:4px">This comes from your Bodyweight log. Changing it here adds or updates today\'s weigh-in; your earlier weigh-ins stay in the history.</p></div>'+
         '<div style="margin-top:10px"><label class="flabel">Your goals — tap to pick as many as fit</label>'+
-        '<div id="pfGoalChips">'+
-          Object.keys(GOALS).map(function(k){ return '<button type="button" class="tag-chip'+(profileGoals().indexOf(k)>=0?" on":"")+'" data-goalchip="'+k+'">'+esc(GOALS[k].label)+'</button>'; }).join("")+
-        '</div>'+
+        '<div id="editGoalChips">'+goalChipsHTML(profileGoals())+'</div>'+
         '<p class="muted small" style="margin-top:4px">Pick one, pick five — the coach, the starter routine and the Meal Fuel Log all tailor themselves to the whole combination. Goals frame the advice only; they never set a calorie target for you — that number is always yours to type in.</p></div>'+
         '<div style="margin-top:10px"><label class="flabel" for="pfGoalCustom">Custom goal in your words (used when Custom is picked above)</label>'+
         '<input class="text-in" id="pfGoalCustom" type="text" maxlength="60" placeholder="Type it in your own words" value="'+esc(state.profile.goalCustom || "")+'"></div>'+
+        '<div style="margin-top:10px"><label class="flabel">Your sports — tap to pick as many as you play</label>'+
+        '<div id="editSportChips">'+sportChipsHTML(profileSports)+'</div>'+
+        '<p class="muted small" style="margin-top:4px">Saving these also updates the sports list in Sports Practices.</p>'+
+        '<div style="display:flex;gap:10px;margin-top:4px"><input class="text-in" id="editSportCustom" type="text" maxlength="30" placeholder="Or type another sport"><button class="btn secondary" type="button" id="editSportAdd" style="width:auto;flex:none;padding:12px 16px;min-height:48px">Add</button></div></div>'+
+        '<div style="margin-top:10px"><label class="flabel">Your positions — tap to pick as many as you play</label>'+
+        '<div id="editPositionChips">'+positionChipsHTML(profilePositionList)+'</div>'+
+        '<div style="display:flex;gap:10px;margin-top:8px"><input class="text-in" id="editPositionCustom" type="text" maxlength="40" placeholder="Or type another position"><button class="btn secondary" type="button" id="editPositionAdd" style="width:auto;flex:none;padding:12px 16px;min-height:48px">Add</button></div></div>'+
         '<div style="margin-top:10px"><label class="flabel" for="pfCalEdit">Calories section in the Meal Fuel Log</label>'+
         '<select class="text-in" id="pfCalEdit">'+
           '<option value="on"'+(state.profile.showCalories===false?"":" selected")+'>Show calories section</option>'+
@@ -2121,10 +2366,15 @@
 
       el.innerHTML = html;
 
+      bindSchedulePicker(el, "ms");
+      bindChipToggles(el);
+      bindCustomChipInput(el, "editSportCustom", "editSportAdd", "editSportChips", "data-sportchip", false);
+      bindCustomChipInput(el, "editPositionCustom", "editPositionAdd", "editPositionChips", "data-positionchip", true);
       document.getElementById("schedSave").addEventListener("click", function(){
-        var sch = readSchedulePicker("ms");
-        if(!sch){ toast("Pick at least one workout day first."); return; }
-        state.schedule = sch;
+        var pickedSchedule = readSchedulePicker("ms");
+        if(pickedSchedule.error){ toast(pickedSchedule.error); return; }
+        state.schedule = pickedSchedule.schedule;
+        state.profile.sessionsPerWeek = pickedSchedule.sessionsPerWeek;
         // Rebuild upcoming days that haven't been started yet so they match the new plan;
         // anything already logged (sets done / trainer checked in) is left untouched.
         Object.keys(state.days).forEach(function(k){
@@ -2132,21 +2382,33 @@
         });
         save(); toast("Schedule saved — quests and streaks follow your days now."); renderAll();
       });
-      el.querySelectorAll("[data-goalchip]").forEach(function(chip){
-        chip.addEventListener("click", function(){ chip.classList.toggle("on"); });
-      });
       document.getElementById("htSave").addEventListener("click", function(){
         var ht = readHeightInputs("ht");
         if(!ht.ok){ toast("Height looks off — feet 3–8, inches 0–11."); return; }
+        var weightText = document.getElementById("pfWeightEdit").value.trim();
+        var editedWeight = null;
+        if(weightText!==""){
+          editedWeight = parseFloat(weightText);
+          if(isNaN(editedWeight) || editedWeight<40 || editedWeight>600){ toast("Current weight needs to be between 40 and 600 lb — or leave it blank."); return; }
+          editedWeight = Math.round(editedWeight*10)/10;
+        }
         var ageV = parseInt(document.getElementById("pfAgeEdit").value, 10);
         state.profile.age = (!isNaN(ageV) && ageV>=5 && ageV<=100) ? ageV : null;
         state.profile.heightIn = ht.heightIn;
-        var picked = [];
-        el.querySelectorAll("[data-goalchip].on").forEach(function(chip){ picked.push(chip.getAttribute("data-goalchip")); });
+        var picked = readChipValues(document.getElementById("editGoalChips"), "data-goalchip");
         state.profile.goals = picked;
         state.profile.goal = picked.length ? picked[0] : null; // legacy field kept in sync
         var goalCustom = document.getElementById("pfGoalCustom");
         if(goalCustom) state.profile.goalCustom = goalCustom.value.trim() || null;
+        state.sports = readChipValues(document.getElementById("editSportChips"), "data-sportchip");
+        state.profile.positions = readChipValues(document.getElementById("editPositionChips"), "data-positionchip");
+        if(editedWeight!==null){
+          var today = todayKey();
+          var todayIndex = -1;
+          state.weights.forEach(function(entry, idx){ if(entry.date===today) todayIndex = idx; });
+          if(todayIndex>=0) state.weights[todayIndex].lbs = editedWeight;
+          else state.weights.push({ date:today, lbs:editedWeight });
+        }
         var calSel = document.getElementById("pfCalEdit");
         if(calSel) state.profile.showCalories = calSel.value !== "off";
         save(); toast("Saved."); renderAll();
