@@ -1,0 +1,1582 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0b0e11" />
+    <!-- PWA / Add to Home Screen (iOS) -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Gym Tracker" />
+    <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAA9zQYyAAAABmJLR0QA/wD/AP+gvaeTAAA/b0lEQVR42u29e9SuV1Uf+ptzPc/7ft/Ozs79QkK4xIjiDRR7FIHhDcoQe0aROoBGQEBBO3QAPdgWjwhVaA8ICsF6KlLaM8By6amVVk9BzzlDVJSLKJdRRWiCJQlJdpKdy7597/s+a815/phzrrXevbPDoed8SQjPzPiyv8t7W2vNNddv/uZlAbPMMssss8wyyyyzzDLLLLPMMssss8wyyyyzzDLLLLPMMssss8wyyyyzzDLLLLPMMssss8wyyyyzzDLLLLPMMssss8wyyyyzzDLLLLPMMssss8wyyyyzzDLLLLPMMssss8wyyyyzzDLLLLPMMssss8wyyyyzzDLLLLPMMssss8wyyyyzzDLLLLPMMssss8wyyyyzzDLLLLPM8tUpdH+++TVvfhNUwSnRYkicxnEkBbPkTAAhJQIPLCIqJee83kwTAHnJS//h/T1vXxXyL97yJgCgcRzGYRiGcViwKvF6s8cqisViCR6TSMkFQCllM4Go/PiP/9T99pnvc4X+1V+9BgB2CbiSII8W1a9T4KEMnEfEZ6liR1VGgBIzMjGdZOJjChyB4npi+mxi/swwLv4bgPULXvii+23yHozytre9FQCWkPLwXMrXqsqjSPEwIlxAzIcAOihalgRi5iTEdJKAowDuUOiNTPRZ5uEvQfg8gL0XvPDF9+nnv88U+pprrgFTGrJsvkukPBuiT1AtX6OqB6BKGg/U+I5ABBATmBjEDGbWlNKxYUjXDmn80DgO70mLxcdEtTzvOc+/TyfuwSZv+423AsCwXq+/A6rPVJTvyjl/jYqcI6IMKIhsTWKJ2NYExAwCQESaUtpLabgOTB8a0+JdZ+0e/LColGf/yNX3yTj2XaF/6fWvw7BYoEzTZSD6iSLygpKny6UUVslQhQJaPwoBgE8cEYFTiskCp4QhJRrHEcMwyDCMX0gD/zqn9LYyre4cdw/hec/50ftk4h4scs1bfhm6ZvBCH5Jz+Ymc8/NF5AqosEhRVYWqAgQQcacwBFCn1AQwMVJKlFICpyTjuLhhGBb/a0r89k2RI2eNCVc/7wX7Op603xP27vf+W3zqk5+8vEh543qzefFqdfL8zWaDnCfkXFByhkhBEaEihYoUEhVS/yoipCIkIoBProhAAQZwnqo+QUUOjuPOR7WU1fv+4+/s95AeVPL+//Q7+LO/+LPLpim/frPe/OR6tbpgs9lQzllFBKL25WtAqkriayXFv6SQSrc2qlAoi8q5gD6BgXOWafhIlv1fn3210P/uPe/CbbfddmBvtfcLJ/dWL9vb20s5Z6gKSBUKAkhtlxMRgSCkIBCYyCxz3f2knBKGYURiRkoDxnHAMIy0WIwnhmF49Tgsr/n6r39U/lvf+YR9nbQHi7zlmjeAiA5sNvlVm/X0P+3trYZp2tj6EIPZT0r4//wfU1gAChCblU7MavAjIdlJimEcMA4jFsvl3mJYvHo4sPOmv/2UJ5eLLrh038bE+/XC737Pu3H87ruwmabvXa3WP3Ly5IlhvV5jmjbI0wZT3qDkDXLJyCVTkQIRAUShIhARFBGUUlCKoBQhKYJSsv8uI+eMIllLkbOKyE9O0/o7br7pZvzW//6ufZuwB5OcPH4nci7fv16vfvTEiRPjar2HzbTGlDeYprWdoqUgl0IlF+Sp2JwXXxcpEP8+l0I5Z5KSIXV9ij1uygeK5p8o6/V3/vnHPobPfu5T+zamfVPoRzz8Chxfr8/aW62efnJv7yHr9VrztEGeJuScYUeVEERJRFCyTYIUP7Ls2LJ/RSCiBktKoSJCogrxIy7noip6JSd++h1337l4xg///X2bsAeL/O77fguHzr74YJ7y1Xt7q0vX65VO09rXp6CUQrlkKtmNjQb8UIMgAf9UoaKQIrEeDkkUUsxI5ZI1T/lKKeXpt916+/JRX/st+zaufVPoD37wD1ByvmyaNt+9mTY65QnTNCFnQS5KuZgFFhHAlVhEIFKgRRoW04bjigiKKMQtg4pCxB5TpLCIPIUIF7/n3e/ctwl7sMgtN9+MzWZ95Xq1fuJms/GTM/scF8oipqRS3McpdQ16hW7r5oqtCpHsvxO36AU5Zy4iTwbTJe9+1zv2bVz7ptA7klBEvqnkfLmUjJJDgYt/BZwonSNhfIfAHEDEJJl1hooAYoqsKiRSzHprcWtQHkGkj37MY75h3ybswSI/9pMvgkj+5pw35+ecNQdEyG5MXImLG54szQCFA6hAtdK99bb1tFO0W2NV0a8hxdc+5JKL9m1c+6bQf3PnYUybzaNLkUV27GvHUiHb4QJsHV3STQ5s0qS31ACU6vdxvMWGEFUV1R1VPPrR3/C4fZuwB4v8wFOeglLK15VSFtIpbimZxE9IEXXD0xQZ2iu1rU2IikCLQus6KYmobRRby6WqXPW9T37avo1rXxRa13fjCY/7Vs4lP6xISe7YUS6FcilQKQ4V0I4uP676/8QZavS/Vf9J4qgTkmK0noiOJPww3Ah84o8+sm+T9pUuv/mOf4Uff/GLEqBXqOggReAUXLXKIgp01tcXyw2LKbYWOzVVTsHUABBGydaUVAUiJeVcrvhfXvPafWPX9kWh3/mb78Kxu44OZcoX5pxJpBgsEIcGjn/tP/iX/+S/2IYgACmgIKP6FFCI4+vgPgUqyqLykPd9+L2L67543X7N2Ve87J3cw913HdslogtESsO5RaiInX7wkxKdBQZQnXWJtev+rIARwYpmrKAUyi0iXEq58JFXPgy/9Y7f3Jex7YtCHz++xt5qGkrJB/K0Qc4FUmwabOAUs1N3dsyITYT4hJllIAtJgeoH7jZ4QBA/AkXk/PVmszPlvC8T9mCQyy+9BNNmdVaeyrmTB7ey+SDQ8EsC7gF1jrWz0tprM9l6MDEY7MvTsVRQhzNCgB4aUuK0O+7L2Ib/nie98v3/BUqMQ6s78Yg7/yv2xgN4/nOeWf++KRNUdRDVZc7m6YoKSMnHKmZtlTzA4pNGfpQBYHhgxWIvzuoTwACxhcpVCaKKoopBlWxj0EGC7j71b3/f0f1Xja9MeexjvhnX33DDTill1/hkIRXzaQCGKkNUwSqAEsIUKxGImjGK3A4AaN/4tx4YAwxbSzGWRIFdEA0CLfH473/qa/BwPASfwF/j07gWBQX4vf++iOL/K4VWVbztbb9+9t7e6oop58vpL99/IYHOUihfL6VIkb1f/IVfuDOX6VYAtx47efKWnXExiOhOLgWSbddHgosdQWIThM7eRkqHOtgghxgMMNSUnAjtvx6D29OIdIdYd869+IL7W28esHL45lugIjtQcwjdqW4KCK3fiSqSO3lVdwG3NBFJZDNWntfBnGydPZNJVM1w2Ql6MA3j8Pnr/obf/KY3XsopXZI4XcK8Ouc7+MolcCVUsaGnP/VuAo5w4luWi+VNz33+j534z//xP+Bpf/cZ9zq2e1Xot7zlGqjq7ht/6fVPLiI/rCqPK6U8VFUOqGhS1XAiSs5lLSpHSilfOH7ixMfXq9VN519w/mV2bBmIMhvMPlXh8JHFTylUO3a+/0wEir8zgMi8c4sQDmVx+k6ho4gub7vx5vtbbx6wcvT4cRTVHSWMQMPFqgCTKV9Ai3qCEhnUsJykLpWMY5lATKBETaEdkoR9UlGsV6uH/+mH/+QfDGm86uDBsx6bhvFhiflcTrywZWcAqgRMRHQ8pXRDzvkTb/+Nf/nbdxy96/9+5zv/9d5zn/vCM47tjAr9hje8AceP711SyvRyKdPzSpkuKeYNqztjFFyyZKGplCGXcnCzWT/8yB13PnG1t1rv7u4ugmczCw1ockzcvEFUg0CmzBwKXNNH7Xf1ixOYyGFMKLXYiakYiGh5Yu/E/a03D1hRLRgHXhDzYBBQnUYl++qEmKGOjamHgTUjkm3NOFlOByVfI1NLW3bfMqp6/MSJK4/cfuS1w5AWm2lNO8sdHYYEZqYuFVVBWDLxchzGC8fF+K1E9IO84XcM4/jGt7/9rbce3N3Fs65+3mlju0eF/v3f/z188pOfOpTz5ufX69WL8rReiGSV4IZVzBErLediygWbadKTJ07gyO23U855Z7W3hyENldO0Tatti1PV20AYlvvsFpqYkeqEWbJMYlNqMIOUASlQLShiCg7CyIkX6810f+vNA1gY47BYDpxGRQtfnypxSpoSKziMC7OdlP6VmOrfIpksUk2VW+pCLgXr9ZqPnzi+GIcB42JUqGAYF7auzOCUwJE6zAmAZxgTLgHwEhCNy+Xi59bTdPKeRnaaQv/6W38N/+rXfgPf8rhv+aHNevWc9WpvMU0bNQtLEQShGsFzpyKXotNmg9VqhdV6BXHvmZkhxTE0E0QUHOn8leFQdFPXdn0oN5zh8ImLiQQUhSyqpRGsARIzD2Lfz3IGYeYhMSUE7SlmaMJ5FyR33AF2p9wy8BhMqbFO7MYmxd+aohMDWjJy5OO0qDDlXJCnjJySKhSSEhInsBQQmbVmVg16FgQl0JKZn5tS+qMnffcTfvsex3XqL846cBYe/z2Pvzjn6dmrvdU569VaN5sJ05QxTREetXDmVDI2JWPKEzbTGuv1GqvVCsUoMwqLriqVwoE0qi5Cp4GliZLvbGqYusKMBjcSExLbZCo6Al8URMTMKdH+BUG/8oUEzBgA8GlJRh7wAoz/j8BWcHXkpyMjoKArOlnqKDMjpYQ0DFacwVyfbyntgauN/ZqmjFyyUYd5Qi6e4Zft9zkX+3fKyHnSzbS5IE/Ts//0jz586BMf//BpQzvNQh+59XasV6urpmn6utV6hfVmA4iEZ0sEglJToNh5JRfKefIPlkHMsIR92uKZDSC5cscpJ2iMBlBpjwqtE4ETg1Ky/Ntkk+iwfEupSUEEZUjBLPcst99+B0BICqTglqFizjm6tarShb9UwEjuD7LTc6bYW7CB2VmnAiKi4LElIotAwFVKhT3u4Kc1lyAKiEkhohohdN5MSDx8IzE/8sTe3ml5qFtm7FevuQZ/8/lrkXO+apo2l242G0ybDaaSMZUJU56QJaJKRsRDpMIGU27fdVPGZrMxp7FPB/VoYB9QOT1mGNQQKk3HZHg69XVsDMPYIAA18YlLKWkzbe5vvXnAytFjJ1CyjiIlqdQoieswo3IYZiC8ECPYKMCYKLT1YYIyN0iSojjAnX8y9krVYGgkLJWaXAbExxBRC6l3+mH0bJcfL+UhpeSHXXfddfjXb/uXW2PbUuiffslL8Le+83u4lPzwnKfd4mU4pWRkKVTUsq5CmUULBNKsraJmZJVSkKWgSHek9ZHBCjnQHMQa97ZhsDuHW0pMCRS0EBoysfyOAtGSRPIwzQp9RvG8mSSiXEr4H6HYp8AMaAsUUAcLyUBddeAjpkBc142p6nJLPJOWx65dApR6iV19v0qKK2xfBWwRFZFDUDzszz/5Fzhw4KytsZ0GNG+5+QtjLvmiaZpQzJkjlWL8S//GcXR47F804vsdbHClFaDVpm1laPmH1xZgCT6eKlXXGI8eSydOSJTijWoWHhEzgYfNelboM4mXtDEUXLRU1iryzy1K5WwwwiGk+u+pr2WxL1did9oZvRHyYFopIAJSYsfWqM58C+ZQc0CJAW4xiZZ7LYOKXvKkb/vO9Kyrn7v1ebYwtJaTyGUaSsmHpslghhQLhxABiRTE0ri2mlbVEr0RFcLuIaPDz+qhla38Df8j9fAimI74vtJFLfgCOK4mqtaFADBRIqJ0y+Hb7m+9eUCLqmOLmtwFZznaepqycQWBfZRbbVO0mkNfJ8PhBDABorUuUWEpCqLqcYZSLXKN+0ZALdaezXAFg1Jxd85QkUObXAYAW87SlkLfeMP1KHmTipSdbLVgtnM5rKSFoIEW/mz7SrYqbkUNT5cueT8gVYMd/jwCtl65ThSiWr5KeNURiKpRKH9Ne7jy9oaZpRebG2EiNUQgcNpOtx5jCl1AylXpImYAoAsg3MObVNhhnLV6ukOFmgAEBOeYt6ELBR4nY0zSAAKRB/TUfLh8YCrltK4FW5DjppsPY72ZeJryTrEEI4iWhti7SpLIgkvsxDoZj0hNawOyNKfDf9/gkSUpVZjRf5w47upx43PXDdrPAX98dWuYmBLonmZ5FgBYLAYASkREAQoVxVmiCIMHNKQuFdREYdx0/KIPhRMU5BFcRADGFVcjv7T6XNpgTNeLhYIpSYMHWqL3xxbsWGbJp0HmLQt92623YZomLlPekSwtWRtiyhYfIs4carkX7OXrxNxYj9iVkAZP/HUqZvb9YckxNTsJ5gbQafCkOs2+EUJxm1OjrHZOznIGIY4J9LwNacYmHDcirXlionbU9w2B6neRiReuZFsg1GS0YEYQrlW/phFMQ41CJmZrg+BfvTJDLTKsqiPu4WzYUuiP/9nHMVgUftk7cHYEiCNat4xB40BqsCOUWSoNZI4ia7OkXkm17RiG58ha8zNq1nSY5i1qD93ktQCNM/esRRLNFvoe5aJLLwZBUMrEUgp57RoF5NjyR+JJ7hcFDCGk3jWqytwMYFAbfZZDbISeoG2GKIJmEZypX4kdchiDZjgaENGFSGGU1db4tkz2ZprAiQlEYyPcu1IpT7igSBDysCdxApI5BUTkMKPNRY0Eumd7alXKFhMdiEYEUun2llRu0Ud4mFs7XFcVnVU1Dcx47o+dOSvrq1V+5Nl/D9N6DfP2hEQzFcm1lKqWWSEULqJXBhuixhMRWGtq0pivDp7UhJ3wboC6Xr1OMSUwj+4EphakoQY5ouWYVSfJKCJ08tixrfFtKbSookBYVIZaml4tZMvECnqG2T3bUGxi93QDBrQP3kv/s3hbAvuQdRZrTVsEsSrJ7h5zzRCjZum1AXRe7CzwoT/84/tbfx5wcu7B8wGLHbCqJfZHKRvQOOiquNSgZZzYzfj0jJX0ZydQq5PQ6VBgBO6CZ1RTghM3yEFuKGteCJmSR5BFVMZSMp88JatyS6E9tk4lSyqltRvQbtcGiI8dM3DCEOCdqVaaAPBdH7vYdi+FzlGzAAFvrASosxC1ethwU8xQLbAVbV/2Jkb9cyIpwLOe8eT7W38ecKILQqIBREaG1aSuLpmrMzdBhXZ/06oXgqbQIk1pm76E+W5uY4UoapUxpFSz6/o8eAvcdKyHK3hFC1JG1UKf+OQnt8a3haGnLAAV5FKSqGrs0OqckuVxxPfs0SAVqbnKW+UnQdedCi2c7yRV7xYZiisQz8nlngetgzDlT+DTrQQUpAWQiYAyPu2R14zffPH3XvpTf/fVF9OwPIvTkBTEIoVVvVaGoHbUGX8V54/5NRZwb4uolm3CrMYO2ICkue+VhlSSoNs9GyGRdnbOPzABFqwCWSajgNQ2L5F9LrM3dlpmhbhXoqoiIFhTGKjCK7ULqQogrHkqus6TlilbzlGRvJmmE+vVTbflz/xvh09e+dMJWkAq7ulQNTrbTngLWkU5VoOBneKGsmqBaup2hTmYXsTsjmeDk7b67UQPEqLvnNViFPBCA4ISBhDRZz77uTMrtGrBZiMspSTxGHtl4eJjR42ZKMDkFQzd7hN37EB+6NhkBeWmGlXcCtYo8WnZd7ERxP9eGX8iFBWwKFLSznoDap1ooCUDe4eX5+186rmfP/ywHxgP3PFNnHYvZF0MJAkAUYI0gtsnkzpKsM9l4GpNpB2S2sIASlBWqou6bYPEYSN38ScPUAQ7o6WG7YO0VM02diSQxFwLyGk19ahe4FX2vAeIAN4kBkLgIkh5A0wTIKIyiZaT67w5dvLI3XzRXx3+9AcuXi8uXVA9EhmqoJo8FMbVUxk4nUIbRRRYFSKElLRFyzvGYxuWNB3Jpfi2oKrIRiBsc+FuY1rwps4lDURM/XlyukIXQRoSqUglfjU+fK1oSO64RakOtehSwBPPra3VJKEc1dJqLaLUTnnVizSrUmjb+1R/14oFKpNB8fmAId+ezubrvw9yAJCBKGWQDiBJ9UjrphZUj0PuFFqr20A1mtUoxyjhjS6qtQKn94Qh1Zdo8U1Bd4RVhoZ84VitaxRRK06NBKHQMPL5IhFYz4HWG4NEQd4igiSD8wpl2kA2grzOyCf2sDl28tL18aPfcOLwYWwODYAsAHEbHfAhnLWag1P8pIzNS15PywhrsBVZ9OcA1LfXrfyGqPXCc+3untsbtmbhoXaqxx+8KVFSaWGIe1ToXAoWiwWpcbl+QgYpbh+2H0ARcQsURHnwxEHrSVUMgSm/Ixb/YKj1a/2uFBGnAAsUDBG2wgDWOlmVOqoDNeVKusaQCoZBkSgrafbXnwiUqjKCpFrG4NRVtjvUb+mec1BaneNo/l223J0wBEzNYmkNeUqdp/YGlfJBCxS19gESll3bCcAQO8apALAEMYKfIiooWoCSQbIByQSUCTJttGz2INNJ5M0KZQOUaQ1RhxqwSu/UFqLqU+/jWN7G0HJ1VCt5UE9Mt9rUMVd1iPUrOmc1vQ39aexaY1EQ0EgtGw+qySz0dprwKZBDQNZZgCI7Lqwo6odz6xOKjniMbGVWRcSQ6jMJ0SgmjqWYyIAkdfQUk9y3/tpuEKjUdrX7DppglkklRzRVDZ9azXg/c9VOq1tNZcd61f+GKlXGKcZJcLgTg0OjKOsYuGX3Rl5L878j38XGTZ3CVsPQ0HZ11mKO63w3PsKiuR6YIhawY1SQB1EisBFKVAqpqEpeQynFohE0ajqpBvQMElq5XYEF0JS6UwLtsX1bN/KTzMblfT6cTSF/finSTgOEf8DOchWwpOpsEqJKKU51IenYmXtUaIsGEbsL6hMvUKH6RhUiuFLbce9sRY3VB/A3PzkiTj0eh0MYampSjxtqf7a6RSpQ4Xbc+YBDyX0jUCKAWcxqSYEKCAPXtEfDiYGh2ZWlz1Xsvu+OuP5vLSYWepIckgdkgp9kvW3vPH01qx5jr7nG9ZXr+QUiO6FIHXDVDEYFkGqqgFXFCwSlInlzrLxIVRlk0uAilErOwFCq10D9NNSNZvCcvReKiLnNRC1M3rpXaXXelUM3PGW0s+KRnRk9waVkX68EJUEuvglLASdfMz87mv6gUo5nVmhzMJKIJKvmAkgEKaU6QHFGQ0hhoVP7fSnFWrIW71gUi4BYido8yheP2w52z7hGGUVQeQQiUBEwC4bBMRjgmFurE9rCt2JGUOAQZwBorBHObcfCKamKM7r2Cc0JgOHrXsvDK6AWqYTWPiPNsdzGLs2ytg5SWv+mlQ0yPSrtpPB5QGdUlBRKAiaCEkNJfNMWY4riU5E6o5AATvYawihiSgTHujEfkcselpcT1/H0Fru6C6LVYsdaFCGwAC3y6KMP2FQry7U1ty/FjZErKCmACVLYPg+xG8yYUrJNekr0+zQLbWBbW2lOz0GqccAF/uZ1J8PafXlJFtSj4lsAqdOFzhs2OifZVRRkR47U55vTk1jqCVDEaTtuFBKCLvMxSO2AmQAMYFjYn1Q7PfMQLth/70cncWNWXGHD6av4zpVbtVd6apsmEqrQrAd1yis1CCHBbXSwozeSqS6uWbfq1qB2nyJrM6Ao7he4gRGG6GCWlItBCxpNMYpAs1gSkQjYLrmqCq2iEA7Frdu1nk2VEIC4I0tgr7pnUbdT4UN0kKLD2LZmNvboOCu1bG4wvMiKIoo8FRDYA3A1oSkSQM6s0KoKYmJRs9BbDxWHH+RVKeqpgegmwq16G0DsuBa/qQax0lWh2PYWKGL8a4ct40grRcBczCpF1LKzRqSAFoWUbKiJGodtCsX1aLWj3vlsdfquOohoVsVZEXuM1pOnJmdVCxTQJpzDZpnr4p5qvcNSRWS1+48r/tx2rJo17U4S2PknVWFis3lbAXZWRlCPf5uvrhOsO5agFFHquq6iahaXK1iGiqB4nzYWgnByCFgAsDuF1NruwrPktNRe3y2C6K8n0nznLv5gVt+6orrfpFBwG/0ZFNqTtZmieDKmPmiV2ovEY+r9sRjWpXP2JRY7kpGcjmqbxS1ZOH5FATYLb03/FEHr1Ary6PoPNMI+KiyKWqPurMhFMCAoxWKeLrFbcnJXgRC99NDZTw3KDKX2c+uDCCqukNSUvHrADs37cG+1wG5t3b4jWpiFlQlHHBCUSg04JyxR3weHV8EVRyN4tR4l3sOZYD9HU3itKQaVdjLKj81Hss/VyqhsIzeKTSiUifx54US7bxN429kvgE3/6+ncsHMobx+FFlEgF5vGgezWgJKQUoEIo+SIXNcNQjVAdm8KjQYkt3yioMHhQZNmPWyBxaNW1mtYQEMc09SwozZ7TdX6+iCcg7a5KE7jepafFCgziprnS2bKQfCTwT9pgfjuRwd/LJ+7sitEQGpBlMrgkHYlCp1ldaMaVrnOiTMdVPnrsFytgmbLv+yDBLFBAvcHMqn6L3VzRdZmbIA+OUiUWhi6timONAF3jqcJ0zqj5Aki2Wo84fNTcXGwJ035GvaNCK7hXADe6ksrwSOsYG/HBmGwqEdMaUvRAa1Ftc1Qar2jpU4Cxdpn5GK50XDePwJ+KsIlT9RD4tMUGrUmrNqQZk3Q4EXg1Qhn2uayxiHig669NcLRQYObjaFza8exqurOoeFPlQJBApFA2Ml9aHUO1KmfCKmqOhwq4Z1ncJmqohLIjkmNoDZ3AY/4TAE/vAcFRVoktQcAlgagFpgxyNwcyKrzlWILpiMoKOe743PHlvf3VocA7fQyR7lSl2HxRLvu+j4Ppa+sdkWe1iibDabVBnkqCGpQBSjU1qLeouBxgGaOYGvBBIuMmoNGTq+CmhNJTJBSb5bd2oR9Ia4NNug7a3uRvPMpELEMBnNB5gwk3Tqd2/F2bwptPCMRcd9rL9g7t1adVy9xp4btMDsWAg700TGumLNWHFQ83+NcVNbArHmxdhFC7VKaIg5hfMdqVFr4omSboDytschrp7tCcQEQO/LpPs+pEAjNmsB53BqtQ8fedCoLCqjC9XlGvkh776jQQdcWrcNoljKLCrPQ+QdhicO5lXqBEkGLnY6h9CUXlM2EaSrImwl5WiNvVsjThJILsoRzF8c+OwPbKDbuo37+KUQEhczyG0dvrSRQnL8Wts3IWhU+3qMaAnFc3lU/RWcBVTYHNeY+9IgU0BEtf8SeX1T0S0COSESiagXs8LDjD7Fg2rzd4hOQI1EmPkXsehEvboXzouIMVKNuzNMVt5gFpMmcznrsRk8GsSYkua21SETTYJ8hCyRnaN6gTGtEFUyboIhiop0gPTQKViPmwCPYNa8lnFV/LRD7hrDLKqGO0pW3FDr4eqgleJEHHKLiveLhiqPbUU3BBrlRqnxuKRDxxKRS/MTK5kNMGXltp6bd7bid8KNwJ7w/T0Qhqbvjhlsr3LbhzBoTe5aKKJSS1Y8yg4qNJ3HrmlT/C2u9demQrS+VOL7FwWSu5qJRqah+gLOzp5VxnKbQEfixd2uBBzvqbZJDF41qAUrrcYfoKRdWvJp4eKZep8ZepNL6qrFx3IErhSxdwApuBYWLhwTt9lmCet88n/ACZFbkTYHkjJI3WwGDVoDpSVXE9RgkYud2A2YFBRfP9VOho6/67tbqVrfetFpaRDT+XlnM4G01cklCmf2RodBE9S6ZmDQpEUxwZ62UCj1U1OBGloanS26dX10p0c4Vg2PalKYjUpzdMAcwet7ZeJ3qY7X1EXMQS8lbpAA7Ho5eHBWvq7cFixYYYkEkhwBgUggJUBz+OZvGzGbUglFtLfTvWaG9YkG3UvfqPjDzZI1l2oeuXmvthNOAcjQliA3RwhrBbhBqsXF3rNeCzSiEdWU3gj3wJnsItfhkK4oAOSs2bpmGaQNIscBQl37YF9miWnCc4YKOwEZqO8wVsv5N40g0jfN4+zZe9JMmnNKwyD3vfKpCNwo/KL/OuvlaaSkNijncK7n4FSDSOeoFRbwCP8xyjfBq8weokpd1mxq3LJXZqk6itJNPVWCuk+VYFs1AcoNG4fifmushmErGWJL16fDXFwEyLC5YjY37dcwJquItDahxwGdSaFFFsVtZpWEnReqO7Zr31nuoWw5L+68G12xT+wA7zKhBI0VKDPkR58k3UEC8A6mULg1lqNuk3q2iNhFFFOvVBpv1BuPOAvBMsdpzOrZVZ7VNZwkoEYpGl8Md4+7G00z2FpvRbxA7ZYKi0HpK1Z1zStApIAf6ue02hLGPDVuX4tYX5l+I32NjF5farQmlaL3EVLr3j1nYSijyMbfTRFv6QTiATPX0aAd4BNKcnZA41Uo7jTxnu54B7j/YtcqCUtQjw4KU3F+C8dvAAM7FTu6Y5WosiLZsBu6RttOikajb0ViRhxGKX3d3l08R1SPxwFB/jdHXQIY/jozaEVEkaqXuRG4stUAY5op3nKbppmd8OfZTMVxehJA3BevVGsuzdgAMtulIKrdqx5g2aw14kKC1RiCNDdgHhSKnQrdmpwNXlSuuY+50neqsdL/slUhk67W6e+0qF93TXMYEoV7DZtytQb+SBWUyZQk2KgxO+D7q+ELqJgzra80TyR3dPgcDqmBY8ARgC2SlcCLJYIdvYpJwaKXbwIGDZcsHs3YZNtcpmdMiTCjC4CLgJFGtXqdkZNZc7iXbLkwyARKdj9pObgt4qmWOG5NKd19H1cxYjeBpnZ3ogyqiApKW2QY4vq60n3gzUULRXBkU576qVVcRTCLI2XD0Zp2rheX6pLbZzGCFVW0RtTodbmnqtuaYi/A1GmVHdYiN7ozNWzd3X2tZrSSqla91lZUi2rbenglgLIg0K2c9/eCKrH6JZiiLNIfQHQq7us3MjSjb6cl+OohAPSKs2uZCxBLSxOc96p3FeE1fCi8KcYNROqWJUz2c+z5Qlku210uw3tRiFp+d0q06VtywGkRyNvNekpM8TqhqycWdohthHkeFWYsWtauNrPui2l6X47XRPOb6Vb3fcspVFLETT61pNMcAgLMnGqc8FEDOwFoE670CProCDgI8JH/tRrhFsMIi1qbQ0WC9MSCom445epxqVY7W880+V8v/bf/G+zXb0rEnbJZMpdtpcTJUKNK16tIulByevld+iKgpczalNvgBFIEFe6TalOYDgTyRCZX6jL80WOlpDhAPZ2Or94plNgZsFHfi2Wleqb0JA3v3OLreBuHGkJggYpCMAn+LY3gpELL3ZtRWvHqvCm09EJKw5Qo6U6eW5BUhYVegChtqlYp02AzN0oWjg2apFEBxOojVa85iUmPTiGG2rgGVO5AEFqd2NPKubZVEgUkIJ1aKQ6uCYVGwxxPG0VkRipyFoCUFxFqdRL/fw96vS3rRcEyCAqrBDQojUC1+JdE7ZQ5SULqNCW1VN1rD713gq1Jz0p7n8x8nIryFVzSCkSIozjpJUUgBpJD9qx3Nqta4TYkQMcWtkjbno703s0GPSFXt4AdH8MeCBpWNAKuXj1kaKW/BSXfy3VpLKZDkRRxFzJkUtVgbGeyIUwZgJESvGNLasveMCm1HrhKR1gc6QJeIHNXnd85BhP/QcanVLrdASXUVq6XY9uiV2uvYhLHtSqhfQsOVm2UVFI0wOqCiqkzImnByrVivhXaKIE8FKgRm6eCwVHZCId6OwX6O7aP1lGlRxsZhdyyGOrcYztGp86PdTLiljVYMNWJY6cAWtqkvXx26SB1Ftc7Bw5cS+BbNUheCFP8bLDoalXUNHXklNYmvbORJxDzD6zpRc7bqgRgQxk9HCZ6VABLPBEzwzlg2z3GRan/CV99ABBKxAiaALRPRAkpesZQskASVSkrxvSk0ABQprqORMA6wElgj1NkcHkV/xMbx1PBy8/DbTPQ5A3UwftYVqJe1d0rjhimScIRaYhIkQdiaB0cvtUKMkyvBalV0uRIIhFKyDL2wzMRdDgb5VWZ+/DOlytJ2leA2DPbfcd2BFeNXPN7hXv+gPgVdMUI4s3H2VHYoTpv4R6sCtNPCN4CZVXhZoWNqw59aLAXXun0SskNBRgJRUsuoI6S0wJAWwHptC4FUkVFg6NhA4U4LGjcd/HV0uooN3PwihnL34X0+KoVXYYgYTDFQbBbditdtQ0iBSPLCAQCa3CqdGlY5leWw46w2CFbnGsWPlFpj29FKfbaUSNd8D3VttixVFIC2wz82R4THGziRjrtWt/4ixflnu+cjEmSYCJwGgAesJsJqpdhdE1FK0CiQDYMbuNcrWawLbEQHIw1Ua0PvUD84hoyexa1lMGomaEMeWh+rEW2r8xDQjV0N+sqZpsQKd3Z986hGdG977oP1KEG11f7O7e8GmwYQExFnTQMw7uwg0wJ0cjK2RBUDKpIyGCe+ZkSegM8emRXLiGSNkmH3UVrdpPiPrQ2BxzKCbUG7MxzVMMICQglQcM3NFr/prDYa8j/fq0LbJTyeotZ5D1Hx3Ndv1fKnmtVW08IqNe8EQF2E4GdbnwfUiaduUWOROTw9bu9JfnQSqXvmTVE5JRy88PIs5Rs/upHr797o2Vct0tnnyJAGqICZiLzjk0oLnOaWA+jK7BDaL/r0iaDtkLffzWU4hqrprXgxnJWWG+JndVVcpei93LwOVfF+3NQ5iK1aJJxZrSYcVo2VC9gttlGkBBIFZ8Uw2Cdn0bygzdGdTbr2vEMPvXBv59LHrY4cZa1Rrcgzdzxdgy+om6y+NnE9XZVqoV3Hn8cqEuqBhoCnHc9dT5eAXs1I9FRihShcUx8L1Uk9k0KnhPV6Yw33t+gDt1Lk1rQ7ikSiG2T9VP5ZtA6ifeNePVrFr3r2VvegiiXFvV2j9Ny7JbNaomQpp8Ydm7/GjLMvuGRv56GP+PXD//6f/PtDF3//Jbo4eIEkPkCkjJQIodQWfqaiwf8SiNmCfgwlZkshN99BjXIqDFWqpT+U1K01M5GXODXWpkYHHU/4QtdwrbWukWoSGapFJhJAra9b63MWjiH5piA/ygIGIttVe975xoNZCuSiJKpEVER0b2eY7lgc/vzhy779Bc+//bbbHnPL7ceWNeAVG8x7rth6RfnV9oa05CSn3tzXCVaj5vD45hdfuyauXTUnWlr6KFv3f1XLUwExKMMLdC0EbyVfkrOIFr0XhYYSxmFQK6jhmi1Vj8MeK6GbvPhZw1gp2rkVx0mY9u4h4octVTRZ2QcQeZ1cV7wklh8doVpRq10zpsIaSA7DqCmNmyuuvmb9/Be/9HoA12OWKm/+lTfg0EO+B5MmGcaF1SFWh745neG9brcSCAjWrDEQCVQw1kjInDvHG9EoPzIe7Y3QfIVo6+ab3/h0AO63aTLOnMM/87OMQBODdODtnudbG2fghHEYlZmFuOE5szSlvml8qOq0oPGsDWw0ZY+/aFBXnnaqaAlOjVXQNrnOP4YXvNWMpOex452JwClJSkPuN9MsTe6+e4W0WIKY15yGwsNg3WMBbLFWdd1aWgPQO4rVjHWMDyql2FJTY+2aJa15P96zULwoIxxd1bi+or1GaBAAN168SUTy3U/8rq3xbSm0d3pUJi6pC5nVD6+RhN99odFv9WytOBpAp9zBi9TGJV4HYxhnm8JDvG53GWQEEIKMb9PeQRtyyoJmhb4n+fiffwJpWEAVWQGpXWTh3ktASW2molGFLbonnRK3kHor0o2Icd/Btjl/Ed2Mx3ip2JZute63YUjDn/a73wsl0ksvvXhrfNvQJhgAglCXw9DvwsZjduC+I9u3nUmqzg3QBm7fx3Fjyl08Yb0/9tpT/Xnh4Yt2gwegrfSUutD9LKfL7/zuf0A2WigTsUTX2K3q/s4AVecuAiG9wtWTMpy7pvBb1Bw6tpJasUbADQv6tKqbWgOpbZ3jMdCKAiYm1t3lztb4TgusMJMSc7Fr1KhLF23Qog+K9F5fsA0OUhCXxhh3rM0CbFlvp5ncDeyTgbrQW5vozir0nFnN7SBSTqeSn7P0kqeMlFIBsdb+y56n0crvYErZJ2cBjScIH4iltoGIIEeUXvWh9OZQepSwtExJs9jsr2X51e6Lews4VCokaE9OlDmRHjy0fU/hlkIvlksLfac0UdxehB7/tKy3Pr20UVbxqAhLG79L0kfCYlaiRVf7nXrjx8r/hrPhJkCFoSlYkpac7yGjKKvSFvmY5Z7EyrzQjlKn7bYd8843AZxH9ziBNlNj96uz57mgNZPcCrD1TYew5RshFNrZHlHxxp5sJWWEGi2sufb2kTZAksXZ522NbQtyPOlJT8BiuZBhXKxSare1Nul5RnSJRvXP8Sh7TM1mO/XteusK9KPd6tXQvWzbyb2rGYvhhxBF+hOd2vJslk6KdM3sAS+nakEudFHNCjXRtSHovyJsXXtulNaFtmNIIuIKWHVTVOs3XK2nPC/oT/F8FjkFEdDaOK7F1ti2FPqRV16BxWIo45hOpCEajmyrz6kMQ+1XV5sKtpyHKHdCqFnfhqb+z5vRhBeNBsP7CufO6bNSIG1OautJZCuiKuWccw7d33rzgJVkmYVKxLp1TZ5bVlJvOqNdLxAApxmcaoS19QaJTbClN96ukrrkKg0j1cFIoLJn0mH0aPJuYQtPBmM+OS4W5dSxbUGOR33tVeCUckp8bBwHpJSQueuQ2X24YCia9FcK2KNq4og2Ks9+btGoHlOrWBJ3JNNYnkDHmhBOC0f30TtmBoiECOXc82aFvjchkFgSWpcD3q1XzbFRsYLfCiejFZjlwChRxdAtDLFNHlS6LaKAAGpf5aoDYcUMWtoOsGojgxuI1ye/DuWu8w6dl08d15ZCp8V5SDxOEL0jpYRhSMgTqyeQe5OgzhHzKFW7RKi1OwV5Q5Kao9ASd4AYgL9UVEx3Id7qYPopQWCvYihgb7wO7Q6YyBcgKsych3Ra3tUsLsXuIZxUNUecxChgDZiMMDiiYj3uhBF3R6IDC8GG1Uy8jsoVb7er7BHIWjwKf27LXrT19gy+qtzUGdKoAGeQ5bPe9kPPflb+N8fu3BrbFuT44z/4AF7+j16xEZEbGSTJL4/3Yhu1vH9Pk6yBkGYd28WJdgknJ64FjuRMx2nRQ+3hgg/G/60ZdlvcpCBLT/S3cnw/soQVZaBtRnKWJhdccD5EMZVSSkT/uF+XarSko2ODZWgtbKNAupcWs9AtWtZ8dYMLfQlf5EdXPwhhwHTrVUP5mYDE6QQBN73yFT+DU2m7rVX/4i1H8LP/6KUYx/Gvl4vF7YtxoJRSTXav+ToUmXvhHdv3QdJzsjdP9Yqu7uORWu5wh6+2BwNsM6GxU9uE1ef0u9n5QuegJfGs0GeSAzs7gGoWtcrEvrYS6LMbUWMPNbFMGnburwnZKurtv0cYGkJKg5fVtcIN6t+bIqxtEvnOcdM4E2NIA8YhHSbGFy6//CF49vOevzW2rVX/+1c/B9/+uG/DYrH4y8Vi8V+XyyXGcbSbPO3OOCViZfQXIkZyvHW6tMvG2S9OTErMta15XwJVOyPExKF5xKf5FF3gpjqT1SncFlFAiVRnC31G4cRgokIwyxS3l9V8nK1orZOsVYvjYpNmvUVbG7H+RK03y/rrRV0nQc3YJdMfdg7b6QMI/I5wu3FM/UekxBjHAZzoM8OYrr3ggvNOG9tpQPPvPftH8cNEX/iZl/3Ue3Z3D3zbNE074p0vo++GOmkcjVKICohUqRDGUWkcFhiHQYchhWMYFIab0VNARuSD1NDgaRnClh0txouHB8yCmkDOzbaLKgrNFvqMMowjOHGhlIS4XQzfZ3K3wgPUBH6lqMZv8duWeed/FEtDDi7aLbVGwxg3gjSOCYtxROKkyaAERezD7nK1EqshJSROGIcBi8VAi8V4lyree+3nP3+E9fQ1Pk2hiQive+3P4+jRo+/d2dl5YinlmSJKRNA8ZculiLB3hCUltQ44TLqzs0QaEoZhqKAfHaCIyQiyvrkYp+Axn7u+rKl6w96qqj/avMg1g2laLBeY5Z5ludwFp3HiNJSteMOWoqI6a+EsWhsztMcGSwFv4AiPafUnbPzoOsB2iistF1iMC4zjiMEtdbTxtaYypvzDkDCOCyyXO7RYLCciencaht/5Oz/wVDz1B3/4tLHdIxXwile+Bi9/6T+4bblc/pyqTgCePgzDwc1mjZyLes6GNsVuBHwuCgKRquo4jta6qaPsGskeET93FCBu7Vu7WZ/TGu40qxtuQ4tW2gNrgGBi4tXZZ8+03ZlkHEcosIFoBrBFtWpbIJdGvrUQNsXCbFf0hLMnnuKL1oclYg7jkLCzswQUdOCsXR3GAYk85SIYEyYr2DbLTOM4Yrmzc8diHN+ZUnr9yRPHjt6TMgNnUGgA+NBHP4EfetqTr7vjrqMv45T+ZFyMz8rT+ps2m3yeiHDtAr/djagAuOPgWQc+l7McOXDgwHefOHHiXCBY8RYogU9hNEEPJW2xRG0T7A+t5rqW4UjdUMF1KzCBsDn3nHPub715wEpKBCllEi2579hYe/MBnbLGKWwshVVjN0taO4u5fxSpCzUgJl3BgyqddeDgLRdeeOEfjSk98uDZB68i4JBB6JYgFX1U0jCUcRxvH8fhUykNv7m7u/s+Ijr+mn/+xjOO7YwK/dGPfAQf/chHcOTwdUde/8tv+Y1hSL+rsnNV3uSrishFIDqLCAu7zEUnETmukJtF5NpxMVx/4YWXLNfr9b9brVaP9e68VWI3183gWItAfteKlzJ1YSrWbStgr0M1n0AarTep6Go5Q44zylm7u1ApaxGZwoJU6qxelcd1TWpUEPAbDdpp679F3DdD3N1Y1U5Zil5hBw4c+OtvfexjX3L41lsOLhfjIwl0JYguJqIDxDR4O9M1gY5zSremYbh2HNK1OzsHDr/y1a/V09MxtuVLRh8uuORrAAO3N/7Sq19xIwEfPLkuPKlGZRQkF11t1noMg+zIhMvPOx8ALso5r4yXJqXUSsaDZQufVr0NreHq7TyNno+MftAkAPMY2a7o4kykKicBrH73//jA/a03D1h56BWXQaErAjbsbENiRg4rGdlLXU+/Bi2sQ9MWzUfNdW+ZmF0vD48ap0Qg1pMPueSSo5ddesnhW++6+7oDB8/G3UduY1Vhq2ATkEKXyx3dPXSpqAp+5h++DADw8//0n33JsX1Z4bR//Auvi2/l3h73xtf9MwC6OX7s2Kp2luwuy6mtW6uT0f9Ot4MtW8UC7fjTOPrggRvHekXKMSjvrdfTfawmXznykY9+AkDaA+Gkxwk0JabEXgjdhblP8eVbnnqF030E2NOAHUOH9Y/HpZQwDuPJYTFmAvDqV/0iuicK/n+QfYkPn33obIiU1XBHujMNg0eIjIWI/oN9qmJtjNhJI+nh8RuuAZbWJNKuSI7Qu4dm7hgWwzqv8pfzkb+q5IYvfhE7uzsnmfnu5LRYMAzAKTelOf+sxDW/uR6wpyh2NKcQJaS4Ic0fm5gwjIOOy8WxEydPlg+8//f2ZWz7QtY++1nPxEUXXThxSrclYh3SYDRMCs4TbddrcM8RPexgSd8/L6pdumBLtBCJ+1CIuajq4Wl9Mj/vBS/alwl7MMiRu+7A8dWJlSrdzpwqD83EGr3oWp9o3c66tAyIrQQkk4jWtvO0Vpi4dU6cJDEfAUh/7//6g30Z274o9DkXXIrPXvs3wildz8xlSAkpJWUmZUaNCvX4vmbc1UlqXGhNXukID8CTONTaAiTbKFmkfPHqH33BvkzWg0V+9mf/KQ5/4b8JpNxEQGZLW9CUTPFaw0o0/rnGC7rEJPRopMvU838JcDhD6tFAYaKb/uTDH9Mv6wN/GbJv4TTdHEVK/NlxMUyJGSOz841JyZOerL9/X1Tb51I3RebOAQE16o69cw4xqTXGoEkFnwdW+zWsB4289rWvBIOuG1Ka0jAguaVOiXTwtao3MNR0g+4FXJujK1Jt3wa09BqrO7FXscDJRlQ/90NPe8q+jWvfFHq9ARLzXy0Xi8OLxUjDMGJIPmlxuymzNWfxQoDIB6lf/vNWm1u3FcnrFQ1quIITHebEn33XO96zbxP2YJFfefNbQWn4NA/DneNiQeNiYUvhSso1JL5980H1fiJJLIwQrDNe1Nv2+RnEBB4GpCFdr6KfufPuo/s2rn1T6Gc98xkg4MaU0kdaklNCYkJKpCkxKLVJi4LaRIxEZApbU1K1JUAheZaWFXhaoo1lYaWUPjgk/uLVz5vx85eS884/H0q4Ng3pQ4vlAovFAuMwhiKrpVWEQaGtL6rfA4ldkes9KOQNqlDxeCJGSgOB+A+HYbz5iU96wr6Na98U+hsf+3jc+IXrjw5p/O3FYnlkXC4oqmCSc9MDQZkJKTKu2DvTOmsxMHuc37lS2xCa2Nr92uQlDCnRMKSbAfzWF2+6+eSXIt9nAV744pfg1jtuOMbM71ksxtsWiwWN4wJDGjEMA4Yh6WBz7XNPGBJhGBjDmOxfXxPLe4/TkpWJlbzgYxgGDONAKfEXReV9ynnvE5/+q30b174pNBHh0suuwGKx84HFYvne3Z0DZbmzg+ViicGt9WBfOgyWhJIG9kmwn23iBgzDgMQDBiYdBrbEp8RIw4DFONLO7nKdEr+dGB88++wD+zZZDzY5/+yLsbMcf38chncsFotpsVjScrnEuBgxpAEcBsQTzdIw1Oy3oPvYM+gSs6bEtgHcAI2LAcvlAsvFcsNE/2ZYjH94zrnn4wUv3L8TdN9N2f/5/vfhD/7wjx+5t7d688mTx39wb28vTZuN5mmyuz/Qel/2eRuGwzpuFOTOHztBP2CxXNJZBw6szzp44B07O7uv/LlX/eytRHNS0pcjf/anv4/3/af//NC9vdWb9k6unrG3t8ebzVo302R3e2skyXQ1oXHTgZPRHkm0jvq+PotxgZ3dJe3uHtjsLHfetVgsX5FzPvza1/3yvo4n/X9/iXuXhz3yofirv/gvd1102UUfhYKJ0iMT80GOQoAhISWzwmF1h+TWIL5PZiEW4wLDOGK5sHTCneXyhnEcr0lD+qWR063f/b1/Z7+H86CTCy+6AOuj09Hl7uJjzCkx0yMAOshM9XS09Uj1e4ck/r2t4zAMGAdLB10ul9jd2cVyuXPzOI6/xml43YGD6ZZX/+Ib9n089xnYfMXPvAyqWK7Wq6eolh8RkceXUi4vpQztdlST2mKq85Sts+gAZp7GcfhCSulDzPyOncXuHwOaX/P6/d35D2Z51Lc/Bc//H/8HrKeyc/ToXd8/bTZXq8jjs8gVUmSotwPXNNDOWncF0okHpJQ2aUjXDyn9SRqGf7scdz8I1ek1r99/ZQbuQ4Xu5Z+8/KfPLSJfD/A3i5SrpMjlgF4IorMB7IjqwudrAmGPQceI6QgTbgD4c8OQPrVYLD53+Lbbj33Do67Cy/7xz98fw3hQyi6Al778p8/JU/m6ovKYUuRRAC4jwnkADgK0C2AUu7qrEGHFlI5xotuZ+QYm/iyIPp2G9Lkbb7rh2FO+7wfwvBf8+H32+e83OuBVr/qfQURYnzwxSiljGlOSIkMaxgRQ8qYkZW+1V5bDkItqAWQqGRMIeOOb/sX99dG/KuQlP/WTgAIp0chMY2JOnDilNCRPniNRlfV6XRbDohAhU8J0YORJFXjla37l/h7CLLPMMssss8wyyyyzzDLLLLPMMssss8wyyyyzzDLLLLPMMssss8wyyyyzzDLLLLPMMssss8wyyyyzzDLLLLPMMssss8wyyyyzzDLLLLPMMssss8wyyyyzzDLLLLPMMssss8wyyyyzzDLLLLPMMssss8wyyyyzzDLLLLPMMssss8wyyyyzzDLLLLPMMssss8wyyyyzzDLLLLN8Vcn/A742yElxyMtvAAAAAElFTkSuQmCC" />
+    <link rel="manifest" href="data:application/json;base64,eyJiYWNrZ3JvdW5kX2NvbG9yIjoiIzBiMGUxMSIsImRlc2NyaXB0aW9uIjoiUXVlc3Qtc3R5bGUgd29ya291dCB0cmFja2VyOiBjaGVjayBvZmYgc2V0cywgZWFybiBYUCwgdHJhY2sgd2VpZ2h0IGFuZCBwaHlzaXF1ZS4iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImljb25zIjpbeyJwdXJwb3NlIjoiYW55Iiwic2l6ZXMiOiIxOTJ4MTkyIiwic3JjIjoiaWNvbi0xOTIucG5nIiwidHlwZSI6ImltYWdlL3BuZyJ9LHsicHVycG9zZSI6ImFueSIsInNpemVzIjoiNTEyeDUxMiIsInNyYyI6Imljb24tNTEyLnBuZyIsInR5cGUiOiJpbWFnZS9wbmcifV0sIm5hbWUiOiJHeW0gVHJhY2tlciIsIm9yaWVudGF0aW9uIjoicG9ydHJhaXQiLCJzY29wZSI6Ii4uLyIsInNob3J0X25hbWUiOiJHeW0gVHJhY2tlciIsInN0YXJ0X3VybCI6Ii4uL2luZGV4Lmh0bWwiLCJ0aGVtZV9jb2xvciI6IiMwYjBlMTEifQ==" />
+    <link rel="icon" href="data:," />
+    <title>Gym Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      :root{
+        --bg:#0b0e11; --panel:#14181c; --panel2:#1a1f24; --line:#262d33;
+        --ink:#eef3f0; --muted:#93a29b; --faint:#5f6f68;
+        --volt:#b7f04a; --volt-ink:#131a05; --orange:#ff8a3d; --red:#ff6b6b;
+        --gold:#ffc94d; --radius:14px;
+        color-scheme: dark;
+      }
+      *{ box-sizing:border-box; }
+      html{ -webkit-text-size-adjust:100%; }
+      body{
+        margin:0; background:var(--bg); color:var(--ink);
+        font-family:"Barlow", system-ui, -apple-system, sans-serif;
+        font-size:16px; line-height:1.45;
+        padding-bottom:calc(86px + env(safe-area-inset-bottom));
+      }
+      h1,h2,h3{ font-family:"Barlow Condensed","Barlow",sans-serif; text-transform:uppercase; letter-spacing:.04em; margin:0; }
+      p{ margin:0; }
+      button{ font-family:inherit; cursor:pointer; }
+      input,select{ font-family:inherit; }
+      .wrap{ max-width:640px; margin:0 auto; padding:0 16px; }
+
+      /* ---------- header / HUD ---------- */
+      .hud{
+        position:sticky; top:0; z-index:30; background:rgba(11,14,17,.92);
+        backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+        padding:calc(10px + env(safe-area-inset-top)) 0 10px;
+      }
+      .hud-row{ display:flex; align-items:center; gap:12px; }
+      .avatar{
+        width:44px; height:44px; border-radius:50%; flex:none;
+        background:var(--volt); color:var(--volt-ink);
+        display:flex; align-items:center; justify-content:center;
+        font-family:"Barlow Condensed",sans-serif; font-weight:700; font-size:22px;
+      }
+      .hud-name{ font-weight:700; font-size:17px; line-height:1.1; }
+      .hud-sub{ color:var(--muted); font-size:12.5px; }
+      .hud-right{ margin-left:auto; display:flex; align-items:center; gap:8px; }
+      .pill{
+        display:inline-flex; align-items:center; gap:5px;
+        background:var(--panel2); border:1px solid var(--line);
+        border-radius:999px; padding:5px 11px; font-weight:700; font-size:13.5px;
+      }
+      .pill svg{ width:15px; height:15px; }
+      .pill.streak{ color:var(--orange); border-color:#4a2f1a; }
+      .pill.level{ color:var(--volt); border-color:#33450f; }
+      .xpbar{ height:8px; background:var(--panel2); border-radius:99px; overflow:hidden; margin-top:10px; }
+      .xpbar > div{ height:100%; background:var(--volt); border-radius:99px; transition:width .5s ease; }
+      .xp-meta{ display:flex; justify-content:space-between; font-size:12px; color:var(--muted); margin-top:5px; }
+
+      /* ---------- quest banner ---------- */
+      .quest-banner{
+        margin-top:16px; border:1px solid #33450f; border-radius:var(--radius);
+        background:var(--panel); padding:18px;
+      }
+      .quest-banner .tag{
+        display:inline-block; background:var(--volt); color:var(--volt-ink);
+        font-family:"Barlow Condensed",sans-serif; font-weight:700; letter-spacing:.08em;
+        font-size:13px; padding:3px 10px; border-radius:6px; text-transform:uppercase;
+      }
+      .quest-banner h1{ font-size:34px; line-height:1.02; margin-top:10px; }
+      .quest-banner .sub{ color:var(--muted); margin-top:6px; font-size:15px; }
+      .quest-banner.done{ border-color:var(--line); }
+      .quest-banner.rest{ border-color:var(--line); }
+      .quest-banner.rest .tag{ background:var(--panel2); color:var(--muted); }
+
+      /* ---------- week strip ---------- */
+      .week{ display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-top:14px; }
+      .day-dot{
+        background:var(--panel); border:1px solid var(--line); border-radius:10px;
+        padding:8px 2px 7px; text-align:center; color:var(--muted);
+        font-size:11.5px; font-weight:600; line-height:1.25; min-height:52px;
+      }
+      .day-dot .d{ display:block; font-size:15px; color:var(--ink); font-weight:700; }
+      .day-dot.sel{ border-color:var(--volt); }
+      .day-dot.done .st{ color:var(--volt); }
+      .day-dot.missed .st{ color:var(--red); }
+      .day-dot .st{ font-size:11px; font-weight:700; letter-spacing:.03em; }
+
+      /* ---------- exercise cards ---------- */
+      .ex-card{
+        background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+        padding:14px; margin-top:12px;
+      }
+      .ex-card.complete{ border-color:#33450f; }
+      .ex-head{ display:flex; align-items:flex-start; gap:10px; }
+      .ex-name{ font-size:21px; line-height:1.05; }
+      .ex-target{ color:var(--muted); font-size:13.5px; margin-top:2px; }
+      .ex-xp{ margin-left:auto; flex:none; color:var(--volt); font-weight:700; font-size:13px; text-align:right; }
+      .tip-btn{
+        background:none; border:1px solid var(--line); color:var(--muted);
+        border-radius:8px; padding:4px 9px; font-size:12.5px; font-weight:600; margin-top:8px;
+      }
+      .tip-box{
+        display:none; margin-top:8px; background:var(--panel2); border-radius:10px;
+        padding:10px 12px; font-size:14px; color:var(--ink);
+      }
+      .tip-box.open{ display:block; }
+      .set-row{
+        display:flex; align-items:center; gap:10px; margin-top:10px;
+        background:var(--panel2); border:1px solid var(--line); border-radius:12px; padding:8px;
+      }
+      .set-check{
+        width:52px; height:52px; flex:none; border-radius:12px;
+        border:2px solid var(--faint); background:transparent; color:transparent;
+        display:flex; align-items:center; justify-content:center; padding:0;
+      }
+      .set-check svg{ width:26px; height:26px; }
+      .set-check.on{ background:var(--volt); border-color:var(--volt); color:var(--volt-ink); }
+      .set-num{ font-family:"Barlow Condensed",sans-serif; font-weight:700; font-size:14px; color:var(--muted); width:34px; flex:none; text-transform:uppercase; }
+      .set-fields{ display:flex; gap:8px; flex:1; }
+      .field{ flex:1; }
+      .field label{ display:block; font-size:10.5px; font-weight:700; letter-spacing:.07em; color:var(--faint); text-transform:uppercase; margin-bottom:2px; }
+      .field input{
+        width:100%; background:var(--bg); border:1px solid var(--line); color:var(--ink);
+        border-radius:9px; padding:9px 8px; font-size:16px; font-weight:600; text-align:center;
+      }
+      .ex-foot{ display:flex; gap:8px; align-items:center; margin-top:12px; flex-wrap:wrap; }
+      .ex-foot .lbl{ font-size:12px; font-weight:700; letter-spacing:.06em; color:var(--faint); text-transform:uppercase; }
+      .effort-sel{
+        background:var(--bg); border:1px solid var(--line); color:var(--ink);
+        border-radius:9px; padding:9px; font-size:15px; font-weight:600;
+      }
+      .pain-btn{
+        border:1px solid var(--line); background:var(--panel2); color:var(--muted);
+        border-radius:9px; padding:9px 12px; font-weight:700; font-size:13.5px;
+      }
+      .pain-btn.on{ background:#3a1d1d; border-color:var(--red); color:var(--red); }
+      .pr-tag{
+        display:inline-block; background:var(--gold); color:#241a02; font-weight:700;
+        font-size:12px; padding:2px 8px; border-radius:6px; margin-left:8px; vertical-align:middle;
+      }
+
+      /* ---------- generic cards / buttons ---------- */
+      .card{ background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:16px; margin-top:14px; }
+      .card h2{ font-size:23px; }
+      .card h3{ font-size:18px; }
+      .muted{ color:var(--muted); }
+      .small{ font-size:13.5px; }
+      .btn{
+        display:inline-flex; align-items:center; justify-content:center; gap:8px;
+        background:var(--volt); color:var(--volt-ink); border:none; border-radius:12px;
+        padding:14px 18px; font-weight:700; font-size:16px; min-height:52px; width:100%;
+      }
+      .btn.secondary{ background:var(--panel2); color:var(--ink); border:1px solid var(--line); }
+      .btn.danger{ background:#3a1d1d; color:var(--red); border:1px solid var(--red); }
+      .btn:disabled{ opacity:.45; }
+      .btn-row{ display:flex; gap:10px; margin-top:12px; }
+      .btn-row .btn{ flex:1; }
+      .form-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px; }
+      .form-grid .full{ grid-column:1 / -1; }
+      .text-in{
+        width:100%; background:var(--bg); border:1px solid var(--line); color:var(--ink);
+        border-radius:10px; padding:12px; font-size:16px;
+      }
+      label.flabel{ display:block; font-size:12px; font-weight:700; letter-spacing:.06em; color:var(--faint); text-transform:uppercase; margin-bottom:5px; }
+      .sched-row{ display:flex; align-items:center; gap:10px; margin-top:8px; }
+      .sched-day{ width:96px; flex:none; font-weight:700; font-size:15px; }
+      .sched-sel{ flex:1; }
+      .checkin-big{
+        width:100%; min-height:76px; border-radius:14px; border:2px dashed var(--faint);
+        background:var(--panel2); color:var(--ink); font-size:19px; font-weight:700;
+        font-family:"Barlow Condensed",sans-serif; letter-spacing:.05em; text-transform:uppercase;
+      }
+      .checkin-big.on{ border-style:solid; border-color:var(--volt); background:#1b2608; color:var(--volt); }
+
+      /* ---------- sections / lists ---------- */
+      .sect-title{ font-size:26px; margin-top:22px; }
+      .stat-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:12px; }
+      .stat{ background:var(--panel2); border:1px solid var(--line); border-radius:12px; padding:11px 8px; text-align:center; }
+      .stat .v{ font-family:"Barlow Condensed",sans-serif; font-size:24px; font-weight:700; line-height:1; }
+      .stat .k{ font-size:11px; color:var(--muted); font-weight:700; letter-spacing:.05em; text-transform:uppercase; margin-top:4px; }
+      .score-num{ font-family:"Barlow Condensed",sans-serif; font-size:64px; font-weight:700; color:var(--volt); line-height:.95; }
+      .score-bar{ height:10px; background:var(--panel2); border-radius:99px; overflow:hidden; margin-top:6px; }
+      .score-bar > div{ height:100%; background:var(--volt); }
+      .score-row{ margin-top:13px; }
+      .score-row .r-head{ display:flex; justify-content:space-between; font-size:14px; font-weight:600; }
+      .score-row .r-head span:last-child{ color:var(--muted); }
+      .pr-chip{ display:inline-block; background:var(--volt); color:var(--volt-ink); font-weight:700; font-size:13.5px; padding:4px 12px; border-radius:999px; }
+      .pr-link{ background:none; border:none; color:var(--volt); font-weight:700; font-size:14.5px; padding:0; text-align:left; }
+      table.hist{ width:100%; border-collapse:collapse; margin-top:10px; font-size:14.5px; }
+      table.hist th{ text-align:left; color:var(--faint); font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; padding:6px 6px 6px 0; border-bottom:1px solid var(--line); }
+      table.hist td{ padding:8px 6px 8px 0; border-bottom:1px solid var(--line); }
+      .coach-card{ border-radius:var(--radius); padding:14px 16px; margin-top:10px; border:1px solid var(--line); background:var(--panel); }
+      .coach-card h3{ font-size:19px; margin-bottom:4px; }
+      .coach-card.good{ border-color:#33450f; }
+      .coach-card.warn{ border-color:#5a3a14; }
+      .coach-card.bad{ border-color:#5c2323; }
+      .coach-card .who{ font-size:11.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--faint); margin-bottom:3px; }
+      .badge-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-top:12px; }
+      .badge{
+        background:var(--panel); border:1px solid var(--line); border-radius:12px;
+        padding:12px 8px; text-align:center;
+      }
+      .badge svg{ width:30px; height:30px; color:var(--faint); }
+      .badge .bn{ font-weight:700; font-size:13px; margin-top:6px; line-height:1.2; }
+      .badge .bd{ font-size:11.5px; color:var(--muted); margin-top:3px; line-height:1.3; }
+      .badge.unlocked{ border-color:#33450f; }
+      .badge.unlocked svg{ color:var(--gold); }
+      .badge.locked{ opacity:.55; }
+      .photo-grid{ display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-top:12px; }
+      .photo-cell{ position:relative; border-radius:12px; overflow:hidden; border:1px solid var(--line); background:var(--panel2); }
+      .photo-cell img{ width:100%; height:170px; object-fit:cover; display:block; }
+      .photo-cell .pd{ position:absolute; left:0; right:0; bottom:0; background:rgba(5,7,5,.75); color:#fff; font-size:12px; font-weight:600; padding:5px 9px; }
+      .photo-cell .del{
+        position:absolute; top:6px; right:6px; width:30px; height:30px; border-radius:50%;
+        border:none; background:rgba(5,7,5,.75); color:#fff; font-size:15px; line-height:1;
+      }
+      .compare{ display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-top:10px; }
+      .compare figure{ margin:0; }
+      .compare img{ width:100%; height:210px; object-fit:cover; border-radius:12px; border:1px solid var(--line); display:block; background:var(--panel2); }
+      .compare figcaption{ font-size:12.5px; color:var(--muted); font-weight:600; margin-top:5px; text-align:center; }
+      .steps{ counter-reset:step; margin:12px 0 0; padding:0; list-style:none; }
+      .steps li{ position:relative; padding:0 0 14px 40px; font-size:15px; }
+      .steps li::before{
+        counter-increment:step; content:counter(step);
+        position:absolute; left:0; top:-2px; width:27px; height:27px; border-radius:50%;
+        background:var(--volt); color:var(--volt-ink); font-weight:700; font-size:14px;
+        display:flex; align-items:center; justify-content:center;
+      }
+      .steps li b{ color:var(--ink); }
+      .codebox{
+        background:#07090b; border:1px solid var(--line); border-radius:10px; padding:12px;
+        font-size:12px; overflow-x:auto; white-space:pre; color:#cfe3c2; margin-top:10px;
+        font-family:ui-monospace, Menlo, monospace;
+      }
+      details summary{ cursor:pointer; font-weight:700; padding:6px 0; }
+
+      /* ---------- tab bar ---------- */
+      .tabbar{
+        position:fixed; left:0; right:0; bottom:0; z-index:40;
+        background:rgba(13,16,19,.97); border-top:1px solid var(--line);
+        padding-bottom:env(safe-area-inset-bottom);
+      }
+      .tabbar-in{ max-width:640px; margin:0 auto; display:grid; grid-template-columns:repeat(4,1fr); }
+      .tab{
+        background:none; border:none; color:var(--faint); padding:9px 0 7px;
+        font-size:11.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase;
+        display:flex; flex-direction:column; align-items:center; gap:3px; min-height:58px;
+      }
+      .tab svg{ width:23px; height:23px; }
+      .tab.on{ color:var(--volt); }
+
+      /* ---------- gate (sign in / create profile) ---------- */
+      .gate{ min-height:100svh; display:flex; flex-direction:column; justify-content:center; padding:28px 0 40px; }
+      .gate .mark{
+        width:74px; height:74px; border-radius:20px; background:var(--volt);
+        display:flex; align-items:center; justify-content:center; margin-bottom:18px;
+      }
+      .gate .mark svg{ width:40px; height:40px; color:var(--volt-ink); }
+      .gate h1{ font-size:44px; line-height:.98; }
+      .gate .lede{ color:var(--muted); margin-top:10px; font-size:16.5px; max-width:44ch; }
+      .pin-dots{ display:flex; gap:12px; justify-content:center; margin:20px 0 6px; }
+      .pin-dots span{ width:15px; height:15px; border-radius:50%; border:2px solid var(--faint); }
+      .pin-dots span.fill{ background:var(--volt); border-color:var(--volt); }
+      .pin-pad{ display:grid; grid-template-columns:repeat(3,74px); gap:10px; justify-content:center; margin-top:12px; }
+      .pin-pad button{
+        height:62px; border-radius:50%; border:1px solid var(--line); background:var(--panel);
+        color:var(--ink); font-size:23px; font-weight:700;
+      }
+      .pin-pad button:active{ background:var(--panel2); }
+      .shake{ animation:shake .3s; }
+      @keyframes shake{ 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+      .toast{
+        position:fixed; left:50%; transform:translateX(-50%) translateY(20px); bottom:96px; z-index:60;
+        background:var(--volt); color:var(--volt-ink); font-weight:700; padding:11px 18px;
+        border-radius:999px; opacity:0; pointer-events:none; transition:all .25s ease; font-size:15px;
+        max-width:88vw; text-align:center;
+      }
+      .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+      .hidden{ display:none !important; }
+      @media (prefers-reduced-motion: reduce){ *{ transition:none !important; animation:none !important; } }
+    </style>
+  </head>
+  <body>
+    <!-- ======================= GATE ======================= -->
+    <div id="gate" class="wrap"></div>
+
+    <!-- ======================= APP ======================= -->
+    <div id="app" class="hidden">
+      <header class="hud">
+        <div class="wrap">
+          <div class="hud-row">
+            <div class="avatar" id="hudAvatar">?</div>
+            <div>
+              <div class="hud-name" id="hudName">Player</div>
+              <div class="hud-sub" id="hudTitle">Rookie</div>
+            </div>
+            <div class="hud-right">
+              <span class="pill streak" id="hudStreak" title="Workout-day streak"></span>
+              <span class="pill level" id="hudLevel"></span>
+            </div>
+          </div>
+          <div class="xpbar"><div id="xpFill" style="width:0%"></div></div>
+          <div class="xp-meta"><span id="xpText">0 XP</span><span id="xpNext"></span></div>
+        </div>
+      </header>
+
+      <main class="wrap">
+        <section id="view-quest"></section>
+        <section id="view-progress" class="hidden"></section>
+        <section id="view-coach" class="hidden"></section>
+        <section id="view-more" class="hidden"></section>
+      </main>
+
+      <nav class="tabbar">
+        <div class="tabbar-in">
+          <button class="tab on" data-tab="quest" type="button"></button>
+          <button class="tab" data-tab="progress" type="button"></button>
+          <button class="tab" data-tab="coach" type="button"></button>
+          <button class="tab" data-tab="more" type="button"></button>
+        </div>
+      </nav>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+    "use strict";
+    /* =====================================================================
+       GYM TRACKER — a single-file quest-style workout tracker.
+       All data lives in this browser's localStorage on this device only.
+       Nothing is uploaded anywhere. Host it free on GitHub Pages.
+       ===================================================================== */
+
+    /* ---------------- program data (Sebastian's actual plan) ---------------- */
+    var SESSIONS = {
+      A: {
+        label: "Session A", dayName: "Monday",
+        sub: "Full-body dumbbells · Rest 60–90 sec between sets",
+        exercises: [
+          { id:"goblet",  name:"Goblet Squat",              sets:3, reps:"8–10",      weight:20, unit:"lb",        tip:"Hold one dumbbell at your chest, feet shoulder-width. Sit your hips down between your heels, chest tall, knees tracking over your toes. Drive up through your whole foot." },
+          { id:"bench",   name:"Dumbbell Bench Press",      sets:3, reps:"8–10",      weight:15, unit:"lb each",   tip:"Dumbbells start over your chest, lower them slow until your upper arms are about parallel to the floor, then press up. Keep your feet planted and shoulder blades squeezed into the bench." },
+          { id:"row1",    name:"One-Arm Dumbbell Row",      sets:3, reps:"10 / side", weight:20, unit:"lb",        tip:"Free hand and knee on the bench, back flat like a table. Pull the dumbbell to your hip — not your chest — and squeeze your back at the top. No twisting." },
+          { id:"rdl",     name:"Dumbbell Romanian Deadlift", sets:3, reps:"10",      weight:25, unit:"lb each",   tip:"Soft knees, hinge at the hips and slide the dumbbells down your thighs, back flat the whole time. You should feel your hamstrings load up, not your lower back." },
+          { id:"ohp",     name:"Dumbbell Overhead Press",   sets:3, reps:"8–10",      weight:10, unit:"lb each",   tip:"Press straight up, biceps by your ears at the top. Brace your core and squeeze your glutes so your lower back doesn't arch. Lower with control." },
+          { id:"plank",   name:"Plank",                     sets:3, reps:"45 sec",    weight:null, unit:"bodyweight", tip:"Forearms down, body in one straight line from head to heels. Squeeze glutes and core, breathe steady. If your hips sag, reset — a shorter perfect plank beats a long sloppy one." }
+        ]
+      },
+      B: {
+        label: "Session B", dayName: "Wednesday",
+        sub: "Full-body dumbbells · Rest 60–90 sec between sets",
+        exercises: [
+          { id:"lunge",   name:"Dumbbell Reverse Lunge",    sets:3, reps:"10 / leg",  weight:15, unit:"lb each",   tip:"Step back, drop the back knee toward the floor, front shin stays mostly vertical. Push through the front heel to stand. Torso tall, no wobbling side to side." },
+          { id:"incline", name:"Incline Dumbbell Press",    sets:3, reps:"8–10",      weight:15, unit:"lb each",   tip:"Bench at about 30–45°. Same press mechanics as flat bench, but the dumbbells travel slightly higher toward your upper chest. Control the way down." },
+          { id:"row2",    name:"Bent-Over Dumbbell Row",    sets:3, reps:"10",        weight:20, unit:"lb",        tip:"Hinge to about 45°, back flat, dumbbells hanging under your shoulders. Row both to your ribs and pause a second at the top. If your lower back rounds, the weight is too heavy." },
+          { id:"thrust",  name:"Dumbbell Hip Thrust",       sets:3, reps:"12",        weight:25, unit:"lb each",   tip:"Upper back on the bench, dumbbells on your hips. Drive through your heels until your body is a straight line, squeeze your glutes hard for a second at the top." },
+          { id:"latraise",name:"Dumbbell Lateral Raise",    sets:3, reps:"12–15",     weight:10, unit:"lb each",   tip:"Slight bend in the elbows, raise out to the sides to shoulder height — like pouring two pitchers. Slow down on the way back. If you're swinging, go lighter." },
+          { id:"deadbug", name:"Dead Bug",                  sets:3, reps:"10 / side", weight:null, unit:"bodyweight", tip:"Lower back pressed into the floor the whole time. Extend opposite arm and leg slowly, exhale as you reach. If your back arches off the floor, shorten the reach." }
+        ]
+      },
+      T: { label:"Trainer Session", dayName:"Thursday", sub:"Private session with your personal trainer — just show up and check in." }
+    };
+    var DEFAULT_SCHEDULE = { 1:"A", 3:"B", 4:"T" }; // JS weekday keys — Sebastian's days (Mon/Wed/Thu). Every user can override theirs in More → My Schedule.
+    var DAY_ORDER = [1,2,3,4,5,6,0]; // Monday first
+    var DAY_NAMES = { 0:"Sunday", 1:"Monday", 2:"Tuesday", 3:"Wednesday", 4:"Thursday", 5:"Friday", 6:"Saturday" };
+
+    var XP = { set:10, exerciseDone:25, dayDone:60, trainer:80, weighIn:15, measures:20, photo:10 };
+    var LEVEL_TITLES = ["Rookie","Prospect","Contender","Grinder","Workhorse","Beast Mode","All-Star","MVP","Hall of Famer","Built Different"];
+
+    /* ---------------- storage ---------------- */
+    var LS_KEY = "gymtracker.v1";
+    var state = loadState();
+    var unlocked = false;
+    var pinEntry = "";
+    var selectedDate = todayKey();
+    var activeTab = "quest";
+    var compareIds = { a:null, b:null };
+
+    function blankState(){
+      return { profile:null, schedule:null, days:{}, weights:[], measures:[], photos:[], createdAt:Date.now() };
+    }
+    function loadState(){
+      try{
+        var raw = localStorage.getItem(LS_KEY);
+        if(!raw) return blankState();
+        var s = JSON.parse(raw);
+        if(!s || typeof s !== "object") return blankState();
+        s.days = s.days || {}; s.weights = s.weights || []; s.measures = s.measures || []; s.photos = s.photos || [];
+        if(s.schedule && typeof s.schedule === "object"){
+          var ns = {};
+          for(var di=0; di<7; di++){ var sv = s.schedule[di]; ns[di] = (sv==="A"||sv==="B"||sv==="T") ? sv : null; }
+          s.schedule = ns;
+        } else if(s.profile){
+          // Profile created before schedules were customizable (Sebastian's) — keep his Mon/Wed/Thu plan as-is
+          s.schedule = { 0:null, 1:"A", 2:null, 3:"B", 4:"T", 5:null, 6:null };
+        }
+        return s;
+      }catch(e){ return blankState(); }
+    }
+    function save(){
+      try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
+      catch(e){ toast("Storage is full — delete a progress photo to free space."); }
+    }
+
+    /* ---------------- date helpers ---------------- */
+    function pad(n){ return (n<10?"0":"")+n; }
+    function keyOf(d){ return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()); }
+    function todayKey(){ return keyOf(new Date()); }
+    function parseKey(k){ var p=k.split("-"); return new Date(+p[0], +p[1]-1, +p[2]); }
+    function addDays(d,n){ var x=new Date(d); x.setDate(x.getDate()+n); return x; }
+    function effectiveSchedule(){ return state.schedule || DEFAULT_SCHEDULE; }
+    function planFor(date){ return effectiveSchedule()[date.getDay()] || null; }
+    function prettyDate(k){
+      var d = parseKey(k);
+      return d.toLocaleDateString(undefined,{weekday:"short", month:"short", day:"numeric"});
+    }
+    function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+
+    /* ---------------- schedule picker (choose your own workout days) ---------------- */
+    function schedulePickerHTML(prefix, current){
+      var cur = current || {};
+      return DAY_ORDER.map(function(dn){
+        var v = cur[dn] || "";
+        function opt(val, label){ return '<option value="'+val+'"'+(v===val?" selected":"")+'>'+label+'</option>'; }
+        return '<div class="sched-row"><span class="sched-day">'+DAY_NAMES[dn]+'</span>'+
+          '<select class="text-in sched-sel" id="'+prefix+'-sched-'+dn+'" aria-label="'+DAY_NAMES[dn]+' plan">'+
+          opt("","Rest")+opt("A","Session A")+opt("B","Session B")+opt("T","Trainer session")+
+          '</select></div>';
+      }).join("");
+    }
+    function readSchedulePicker(prefix){
+      var sch = {}, any = false;
+      DAY_ORDER.forEach(function(dn){
+        var sel = document.getElementById(prefix+"-sched-"+dn);
+        var v = sel ? sel.value : "";
+        sch[dn] = (v==="A"||v==="B"||v==="T") ? v : null;
+        if(sch[dn]) any = true;
+      });
+      return any ? sch : null; // null = no workout day picked at all
+    }
+    function weekScheduledKeys(monDate){ // scheduled date-keys in the Mon-start week containing monDate
+      var out = [];
+      for(var i=0;i<7;i++){ var d = addDays(monDate, i); if(planFor(d)) out.push(keyOf(d)); }
+      return out;
+    }
+
+    /* ---------------- day records ---------------- */
+    function getDay(k){
+      if(!state.days[k]){
+        var type = planFor(parseKey(k));
+        if(!type) return null;
+        var rec = { type:type, sets:{}, effort:{}, pain:{}, trainer:false };
+        if(type==="A" || type==="B"){
+          SESSIONS[type].exercises.forEach(function(ex){
+            rec.sets[ex.id] = [];
+            for(var i=0;i<ex.sets;i++){
+              var last = lastWeightFor(ex.id);
+              rec.sets[ex.id].push({ done:false, w: last!=null? last : (ex.weight||0), r:"" });
+            }
+          });
+        }
+        state.days[k] = rec;
+      }
+      return state.days[k];
+    }
+    function sessionsOfType(type){
+      return Object.keys(state.days).filter(function(k){ return state.days[k].type===type; }).sort();
+    }
+    function lastWeightFor(exId){
+      var keys = Object.keys(state.days).sort();
+      var best = null;
+      for(var i=keys.length-1;i>=0;i--){
+        var d = state.days[keys[i]];
+        if(d.sets && d.sets[exId]){
+          for(var j=0;j<d.sets[exId].length;j++){ if(d.sets[exId][j].done){ return d.sets[exId][j].w; } }
+        }
+      }
+      return best;
+    }
+    function exerciseComplete(k, exId){
+      var d = state.days[k]; if(!d || !d.sets[exId]) return false;
+      return d.sets[exId].every(function(s){ return s.done; });
+    }
+    function dayComplete(k){
+      var d = state.days[k]; if(!d) return false;
+      if(d.type==="T") return !!d.trainer;
+      return SESSIONS[d.type].exercises.every(function(ex){ return exerciseComplete(k, ex.id); });
+    }
+    function dayStarted(k){
+      var d = state.days[k]; if(!d) return false;
+      if(d.type==="T") return !!d.trainer;
+      return Object.keys(d.sets).some(function(id){ return d.sets[id].some(function(s){ return s.done; }); });
+    }
+    function dayStatus(k){
+      var type = planFor(parseKey(k));
+      if(!type) return "rest";
+      if(dayComplete(k)) return "done";
+      if(parseKey(k) < parseKey(todayKey())) return "missed";
+      return "planned";
+    }
+
+    /* ---------------- XP / levels ---------------- */
+    function computeXP(){
+      var xp = 0;
+      Object.keys(state.days).forEach(function(k){
+        var d = state.days[k];
+        if(d.type==="T"){ if(d.trainer) xp += XP.trainer; return; }
+        SESSIONS[d.type].exercises.forEach(function(ex){
+          var sets = d.sets[ex.id] || [];
+          sets.forEach(function(s){ if(s.done) xp += XP.set; });
+          if(sets.length && sets.every(function(s){ return s.done; })) xp += XP.exerciseDone;
+        });
+        if(dayComplete(k)) xp += XP.dayDone;
+      });
+      xp += state.weights.length * XP.weighIn;
+      xp += state.measures.length * XP.measures;
+      xp += state.photos.length * XP.photo;
+      return xp;
+    }
+    function levelFor(xp){
+      // Level n needs 100 * (n-1) * n / 2 cumulative XP (100, 300, 600, 1000...)
+      var lvl = 1;
+      while(xp >= 100 * lvl * (lvl+1) / 2) lvl++;
+      var floor = 100 * (lvl-1) * lvl / 2;
+      var ceil  = 100 * lvl * (lvl+1) / 2;
+      return { level:lvl, floor:floor, ceil:ceil, into:xp-floor, span:ceil-floor,
+               title: LEVEL_TITLES[Math.min(lvl, LEVEL_TITLES.length)-1] };
+    }
+
+    /* ---------------- streaks ---------------- */
+    function scheduledKeysBack(fromKey, count){
+      var out = [], d = parseKey(fromKey), guard = 0;
+      while(out.length < count && guard < 400){
+        if(planFor(d)) out.push(keyOf(d));
+        d = addDays(d, -1); guard++;
+      }
+      return out;
+    }
+    function currentStreak(){
+      var tk = todayKey();
+      var keys = scheduledKeysBack(tk, 60);
+      var streak = 0;
+      for(var i=0;i<keys.length;i++){
+        if(keys[i]===tk && !dayComplete(tk)) continue; // today still in play
+        if(dayComplete(keys[i])) streak++;
+        else break;
+      }
+      return streak;
+    }
+    function bestStreak(){
+      var keys = Object.keys(state.days).sort();
+      if(!keys.length) return 0;
+      var first = keys[0];
+      var all = scheduledKeysBack(todayKey(), 400).filter(function(k){ return k>=first; }).reverse();
+      var best=0, run=0;
+      all.forEach(function(k){
+        if(dayComplete(k)){ run++; if(run>best) best=run; } else if(k < todayKey()) run=0;
+      });
+      return best;
+    }
+    function perfectWeekStreak(){
+      // consecutive Mon-start weeks (ending with the most recent finished week) where every scheduled day was done
+      var now = new Date(); var dow = (now.getDay()+6)%7; // 0 = Monday
+      var thisMonday = addDays(new Date(now.getFullYear(), now.getMonth(), now.getDate()), -dow);
+      var streak = 0;
+      for(var w=0; w<52; w++){
+        var mon = addDays(thisMonday, -7*w);
+        var keys = weekScheduledKeys(mon);
+        if(!keys.length) break; // no workout days picked — no perfect weeks possible
+        var allDone = keys.every(function(k){ return dayComplete(k); });
+        if(w===0 && !allDone) continue; // current week still in progress — don't break the streak
+        if(allDone) streak++; else break;
+      }
+      return streak;
+    }
+    function totalWorkouts(){
+      return Object.keys(state.days).filter(function(k){ return dayComplete(k); }).length;
+    }
+    function totalSets(){
+      var n=0;
+      Object.keys(state.days).forEach(function(k){
+        var d=state.days[k]; if(!d.sets) return;
+        Object.keys(d.sets).forEach(function(id){ d.sets[id].forEach(function(s){ if(s.done) n++; }); });
+      });
+      return n;
+    }
+    /* Best (heaviest) weight ever logged per exercise, and the prescribed starting weight */
+    function bestWeight(exId){
+      var best = null;
+      Object.keys(state.days).forEach(function(k){
+        var d = state.days[k]; if(!d.sets || !d.sets[exId]) return;
+        d.sets[exId].forEach(function(s){ if(s.done && s.w && (best===null || s.w>best)) best = s.w; });
+      });
+      return best;
+    }
+    function prescribedWeight(exId){
+      var found = null;
+      ["A","B"].forEach(function(t){ SESSIONS[t].exercises.forEach(function(ex){ if(ex.id===exId) found = ex.weight; }); });
+      return found;
+    }
+    function improvedLifts(){
+      var out = [];
+      ["A","B"].forEach(function(t){ SESSIONS[t].exercises.forEach(function(ex){
+        if(ex.weight==null) return;
+        var b = bestWeight(ex.id);
+        if(b!=null && b >= ex.weight + 5) out.push({ name:ex.name, from:ex.weight, to:b });
+      });});
+      return out;
+    }
+
+    /* ---------------- badges ---------------- */
+    var TROPHY = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v6a5 5 0 0 1-10 0V4z"/><path d="M7 6H4a1 1 0 0 0-1 1c0 2.5 1.8 4 4 4M17 6h3a1 1 0 0 1 1 1c0 2.5-1.8 4-4 4"/></svg>';
+    function computeBadges(){
+      var imp = improvedLifts();
+      return [
+        { id:"first-set",   name:"First Rep",        desc:"Check off your first set",        got: totalSets()>=1 },
+        { id:"first-day",   name:"Quest Complete",   desc:"Finish a full workout day",       got: totalWorkouts()>=1 },
+        { id:"trainer-1",   name:"Checked In",       desc:"Show up to a trainer session",    got: Object.keys(state.days).some(function(k){ return state.days[k].trainer; }) },
+        { id:"sets-50",     name:"50 Club",          desc:"Complete 50 total sets",          got: totalSets()>=50 },
+        { id:"sets-200",    name:"200 Club",         desc:"Complete 200 total sets",         got: totalSets()>=200 },
+        { id:"streak-3",    name:"Heating Up",       desc:"3 workout days in a row",         got: bestStreak()>=3 },
+        { id:"perfect-wk",  name:"Perfect Week",     desc:"Every workout day in one week done", got: perfectWeekStreak()>=1 || weekWasPerfect() },
+        { id:"streak-4wk",  name:"Month of Iron",    desc:"4 perfect weeks in a row",        got: perfectWeekStreak()>=4 },
+        { id:"pr-1",         name:"New PR",           desc:"Beat a starting weight by 5+ lb on any lift", got: imp.length>=1 },
+        { id:"pr-3",         name:"On the Rise",      desc:"Get stronger on 3 different lifts", got: imp.length>=3 },
+        { id:"weigh-5",      name:"Scale Regular",    desc:"Log your weight 5 times",         got: state.weights.length>=5 },
+        { id:"measure-3",    name:"Tape Measure Pro", desc:"Log measurements 3 times",        got: state.measures.length>=3 },
+        { id:"photo-1",      name:"Progress Pic",     desc:"Save your first progress photo",  got: state.photos.length>=1 },
+        { id:"level-5",     name:"Level 5",          desc:"Reach level 5",                   got: levelFor(computeXP()).level>=5 }
+      ];
+    }
+    function weekWasPerfect(){
+      // any Mon-start week in history where every scheduled day was completed
+      var keys = Object.keys(state.days);
+      var seen = {};
+      for(var i=0;i<keys.length;i++){
+        var d = parseKey(keys[i]); var dow=(d.getDay()+6)%7;
+        var mon = addDays(new Date(d.getFullYear(), d.getMonth(), d.getDate()), -dow);
+        var monKey = keyOf(mon);
+        if(seen[monKey]) continue; seen[monKey] = true;
+        var wk = weekScheduledKeys(mon);
+        if(wk.length && wk.every(function(k){ return dayComplete(k); })) return true;
+      }
+      return false;
+    }
+
+    /* ---------------- progress score (effort-based, never appearance) ----------------
+       100 pts = 45 consistency + 35 strength progression + 20 tracking habits. */
+    function progressScore(){
+      // Consistency: scheduled days in the last 28 days that were completed
+      var last28 = scheduledKeysBack(todayKey(), 12); // ~12 scheduled days in 28 days
+      var doneCount = last28.filter(function(k){ return dayComplete(k); }).length;
+      var pastDue = last28.filter(function(k){ return k < todayKey() || dayComplete(k); });
+      var consistencyPct = pastDue.length ? doneCount/Math.max(pastDue.length,1) : 0;
+      if(pastDue.length===0) consistencyPct = 0;
+      var consistency = Math.round(consistencyPct * 45);
+
+      // Strength: average % gain over prescribed start across weighted lifts you've improved
+      var weighted = [];
+      ["A","B"].forEach(function(t){ SESSIONS[t].exercises.forEach(function(ex){ if(ex.weight) weighted.push(ex); }); });
+      var gains = weighted.map(function(ex){
+        var b = bestWeight(ex.id);
+        if(b==null) return 0;
+        return Math.max(0, (b - ex.weight) / ex.weight); // e.g. 20 -> 26 = 0.30
+      });
+      var avgGain = gains.reduce(function(a,b){ return a+b; },0) / gains.length;
+      var strength = Math.round(Math.min(avgGain/0.30, 1) * 35); // +30% average = full marks
+
+      // Tracking habits: weigh-ins + measurement logs + photos in place
+      var tracking = 0;
+      tracking += Math.min(state.weights.length/4, 1) * 8;   // up to 8
+      tracking += Math.min(state.measures.length/3, 1) * 8;  // up to 8
+      tracking += Math.min(state.photos.length/2, 1) * 4;    // up to 4
+      tracking = Math.round(tracking);
+
+      return {
+        total: consistency + strength + tracking,
+        consistency: consistency, strength: strength, tracking: tracking,
+        consistencyPct: Math.round(consistencyPct*100),
+        avgGainPct: Math.round(avgGain*100),
+        doneCount: doneCount, dueCount: pastDue.length
+      };
+    }
+    function scoreVerdict(s){
+      if(s.total>=80) return "Elite trajectory. This is what consistency looks like — keep stacking weeks like this.";
+      if(s.total>=60) return "Strong progress. You're showing up and getting stronger — that's the whole game.";
+      if(s.total>=40) return "Building momentum. A few more completed quests and this number jumps fast.";
+      if(s.total>=15) return "You're on the board. Every checked set moves this score — one workout at a time.";
+      return "Just getting started. Finish your first quest and watch this score move.";
+    }
+
+    /* ---------------- physique rating (PROGRESS over time only) ----------------
+       Rates how your physique is changing: training consistency, strength
+       progression vs your own starting weights, and your own measurement
+       trends. Never grades appearance, never compares you to anyone else. */
+    function latestLoggedWeight(exId){
+      // Most recent day's heaviest completed set for this lift
+      var keys = Object.keys(state.days).sort();
+      for(var i=keys.length-1;i>=0;i--){
+        var d = state.days[keys[i]];
+        if(d.sets && d.sets[exId]){
+          var best = null;
+          d.sets[exId].forEach(function(s){ if(s.done && s.w && (best===null || s.w>best)) best = s.w; });
+          if(best!==null) return best;
+        }
+      }
+      return null;
+    }
+    function computePhysiqueRating(){
+      // TRAINING /40 — consistency over the last 28 days, per your own schedule
+      var now = new Date();
+      var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      var planned28 = 0, complete28 = 0;
+      for(var i=0;i<28;i++){
+        var d = addDays(today, -i);
+        if(planFor(d)){ planned28++; if(dayComplete(keyOf(d))) complete28++; }
+      }
+      var training = planned28 ? Math.round(40 * complete28 / planned28) : 0;
+      var dTraining = complete28 + "/" + planned28 + " training days in the last 4 weeks";
+
+      // STRENGTH /30 — share of lifts now above your own starting (prescribed) weight
+      var lifts = [];
+      ["A","B"].forEach(function(t){ SESSIONS[t].exercises.forEach(function(ex){ if(ex.weight!=null) lifts.push(ex); }); });
+      var gained = [];
+      lifts.forEach(function(ex){
+        var cur = latestLoggedWeight(ex.id);
+        if(cur!=null && cur > ex.weight) gained.push({ name:ex.name, delta: Math.round((cur-ex.weight)*10)/10 });
+      });
+      var strength = lifts.length ? Math.round(30 * gained.length / lifts.length) : 0;
+      var dStrength = gained.length
+        ? ("Up: " + gained.map(function(g){ return g.name + " +" + g.delta + " lb"; }).join(", "))
+        : "No lifts above baseline yet — small jumps still count";
+
+      // MEASUREMENTS /30 — your latest check-in vs your first, same tape spots
+      var m = sortedMeasures();
+      var meas = 0, dMeas;
+      if(m.length < 2){
+        dMeas = "Add a second stats check-in to unlock measurement scoring";
+      } else {
+        var first = m[0], latest = m[m.length-1], parts = [], gainsCount = 0;
+        [["chest","Chest"],["arm","Arms"],["thigh","Thighs"]].forEach(function(f){
+          if(first[f[0]]!=null && latest[f[0]]!=null){
+            var delta = Math.round((latest[f[0]]-first[f[0]])*100)/100;
+            if(delta > 0){ gainsCount++; parts.push(f[1]+" +"+delta+'"'); }
+            else if(delta < 0){ parts.push(f[1]+" "+delta+'"'); }
+          }
+        });
+        var waistMoved = false;
+        if(first.waist!=null && latest.waist!=null){
+          var wd = Math.round((latest.waist-first.waist)*100)/100;
+          if(Math.abs(wd) >= 0.25){ waistMoved = true; parts.push("Waist "+(wd>0?"+":"")+wd+'"'); }
+        }
+        meas = Math.min(30, gainsCount*8 + (waistMoved ? 6 : 0));
+        dMeas = parts.length ? (parts.join(" · ") + " since your first check-in") : "No measurement movement yet between check-ins";
+      }
+
+      var score = training + strength + meas;
+      var tier = score>=85 ? "Elite Pace" : score>=70 ? "On Fire" : score>=50 ? "Building" : score>=30 ? "Getting Going" : "Just Starting";
+      return { score:score, tier:tier,
+               parts:{ training:training, strength:strength, meas:meas },
+               drivers:{ training:dTraining, strength:dStrength, meas:dMeas } };
+    }
+    function review_physique_card(){
+      var r = computePhysiqueRating();
+      var photoLine = state.photos.length===0
+        ? '<p class="muted small" style="margin-top:12px">Add a progress photo in the photos section to see yourself change over time.</p>'
+        : '<p style="margin-top:12px"><button type="button" class="pr-link" id="prPhotoLine">Comparing your first photo to your latest: tap to view side-by-side</button></p>';
+      var caption = (state.measures.length<2 && state.photos.length===0)
+        ? '<p class="muted small" style="margin-top:10px">Log a few check-ins to unlock your full rating. Keep training.</p>' : "";
+      return '<h2 class="sect-title">Physique Rating</h2>'+
+      '<div class="card" style="margin-top:10px">'+
+        '<div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">'+
+          '<div class="score-num">'+r.score+'</div>'+
+          '<div><p style="font-weight:700;font-size:17px">Progress Score: '+r.score+'/100</p>'+
+          '<p style="margin-top:6px"><span class="pr-chip">'+esc(r.tier)+'</span></p></div>'+
+        '</div>'+
+        '<p class="muted small" style="margin-top:10px">How much progress you\'ve made toward your goals. Not how you look.</p>'+
+        scoreRow("Training & Consistency", r.parts.training, 40, r.drivers.training)+
+        scoreRow("Strength", r.parts.strength, 30, r.drivers.strength)+
+        scoreRow("Measurements", r.parts.meas, 30, r.drivers.meas)+
+        photoLine + caption +
+        '<div class="btn-row"><button class="btn" type="button" id="prCta">Update Stats &amp; Photos</button></div>'+
+      '</div>';
+    }
+    function scrollToPhotosCard(){
+      var pc = document.getElementById("prPhotosCard");
+      if(pc) pc.scrollIntoView({ behavior:"smooth", block:"start" });
+    }
+
+    /* ---------------- coach critique engine (rule-based, reads your logs) ---------------- */
+    function coachNotes(){
+      var notes = [];
+      var tk = todayKey();
+
+      // 1) Pain flags -> deload advice (safety first)
+      var painHits = [];
+      Object.keys(state.days).sort().slice(-4).forEach(function(k){
+        var d = state.days[k]; if(!d.pain) return;
+        Object.keys(d.pain).forEach(function(id){
+          if(d.pain[id]){
+            var nm = id==="session" ? "your trainer session" : exerciseName(id);
+            painHits.push({ day:k, name:nm });
+          }
+        });
+      });
+      if(painHits.length){
+        var last = painHits[painHits.length-1];
+        notes.push({ tone:"bad", title:"Pain flag on "+last.name, body:"You flagged pain on "+prettyDate(last.day)+". Drop that lift 20–30% lighter next time, keep reps smooth, and tell your trainer at your next trainer session. Sharp or joint pain = stop that exercise and tell a parent or your trainer. Training through pain is how small problems become big ones." });
+      }
+
+      // 2) Missed scheduled days (accountability)
+      var past = scheduledKeysBack(tk, 6).filter(function(k){ return k < tk; });
+      var missed = past.filter(function(k){ return !dayComplete(k); });
+      if(missed.length && past.length){
+        var m = missed[0];
+        notes.push({ tone:"warn", title:"Missed quest: "+prettyDate(m), body:"That day didn't get finished, so the streak took the hit. No guilt trip — but the comeback rule is simple: never miss twice. Your next scheduled session is the most important one on the calendar." });
+      }
+      if(past.length>=3 && missed.length===0){
+        notes.push({ tone:"good", title:"Perfect attendance lately", body:"Every scheduled session in your recent window is done. That reliability is exactly what builds strength — the workouts are almost the easy part." });
+      }
+
+      // 3) Progression praise (weights going up vs previous session of same type)
+      ["A","B"].forEach(function(t){
+        var keys = sessionsOfType(t).filter(function(k){ return dayStarted(k); });
+        if(keys.length<2) return;
+        var prevK = keys[keys.length-2], lastK = keys[keys.length-1];
+        SESSIONS[t].exercises.forEach(function(ex){
+          if(ex.weight==null) return;
+          var prevBest = maxDoneWeight(prevK, ex.id), lastBest = maxDoneWeight(lastK, ex.id);
+          if(prevBest!=null && lastBest!=null && lastBest>prevBest){
+            notes.push({ tone:"good", title:"Progression: "+ex.name, body:"Up from "+prevBest+" lb to "+lastBest+" lb since your last "+SESSIONS[t].label+". That's real progressive overload — exactly how you get stronger. Keep the same jump size next time, no ego leaps." });
+          }
+        });
+      });
+
+      // 4) Repeatedly skipped exercise
+      ["A","B"].forEach(function(t){
+        var keys = sessionsOfType(t).filter(function(k){ return dayStarted(k) && !dayComplete(k); });
+        if(keys.length<2) return;
+        var lastTwo = keys.slice(-2);
+        SESSIONS[t].exercises.forEach(function(ex){
+          if(lastTwo.every(function(k){ return !exerciseComplete(k, ex.id); })){
+            notes.push({ tone:"warn", title:"You keep skipping "+ex.name, body:"It went unfinished in your last two "+SESSIONS[t].label+" sessions. Whatever the reason — time, difficulty, boredom — do it FIRST next session while you're fresh. It's in the plan because it covers something the other lifts don't." });
+          }
+        });
+      });
+
+      // 5) Effort check: very high effort + no weight progress -> form focus; low effort -> push a little
+      var efforts = [];
+      Object.keys(state.days).sort().slice(-3).forEach(function(k){
+        var d = state.days[k]; if(!d.effort) return;
+        Object.keys(d.effort).forEach(function(id){ if(d.effort[id]) efforts.push(d.effort[id]); });
+      });
+      if(efforts.length>=3){
+        var avg = efforts.reduce(function(a,b){return a+b;},0)/efforts.length;
+        if(avg>=9) notes.push({ tone:"warn", title:"Effort is redlining", body:"Your recent effort ratings average "+avg.toFixed(1)+"/10. Training that hard every session isn't sustainable — most working sets should feel like a 7–8, where you could do 2–3 more reps with good form. Leave a little in the tank and you'll progress longer." });
+        else if(avg<=4) notes.push({ tone:"warn", title:"Cruising a little", body:"Recent effort ratings average "+avg.toFixed(1)+"/10. If sets feel that easy with clean form, add 2.5–5 lb next session. Small jumps, good form — never max out." });
+      }
+
+      // 6) Weight trend (gentle, effort-framed)
+      if(state.weights.length>=2){
+        var w = state.weights.slice().sort(function(a,b){ return a.date<b.date?-1:1; });
+        var first = w[0], latest = w[w.length-1];
+        var diff = Math.round((latest.lbs - first.lbs)*10)/10;
+        if(diff!==0){
+          notes.push({ tone:"good", title:"Weight log: "+(diff>0?"+":"")+diff+" lb since "+prettyDate(first.date), body:"The scale is just data — what matters is that you're logging it and training consistently. Strength going up plus steady habits beats chasing the scale day to day. Weigh at the same time of day for numbers you can trust." });
+        }
+      } else {
+        notes.push({ tone:"warn", title:"No weight trend yet", body:"Log your bodyweight on the Progress tab about once a week — same time of day, ideally morning. The chart needs data before it can tell you anything." });
+      }
+
+      // 7) Default encouragement when nothing else fired
+      if(!notes.length){
+        notes.push({ tone:"good", title:"Clean slate, let's work", body:"No red flags in your logs. Show up for the next quest, check off every set, and this panel will have real feedback for you soon." });
+      }
+      return notes;
+    }
+    function exerciseName(id){
+      var nm = id;
+      ["A","B"].forEach(function(t){ SESSIONS[t].exercises.forEach(function(ex){ if(ex.id===id) nm = ex.name; }); });
+      return nm;
+    }
+    function maxDoneWeight(k, exId){
+      var d = state.days[k]; if(!d || !d.sets[exId]) return null;
+      var best = null;
+      d.sets[exId].forEach(function(s){ if(s.done && s.w && (best===null || s.w>best)) best = s.w; });
+      return best;
+    }
+    /* Is this set a PR? (heavier than any previously logged done set for that exercise, before this day) */
+    function isPR(k, exId, w){
+      if(!w) return false;
+      var prev = null;
+      Object.keys(state.days).forEach(function(dk){
+        if(dk>=k) return;
+        var d = state.days[dk]; if(!d.sets || !d.sets[exId]) return;
+        d.sets[exId].forEach(function(s){ if(s.done && s.w && (prev===null || s.w>prev)) prev = s.w; });
+      });
+      return prev!==null && w>prev;
+    }
+
+    /* ---------------- icons ---------------- */
+    var IC = {
+      bolt:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4.5 13.5H11L9.5 22 19 10h-6.5L13 2z"/></svg>',
+      flame:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2s1 2.6-.6 5.2C10 9.6 8 10.8 8 13.5A4.5 4.5 0 0 0 12.5 18 4.6 4.6 0 0 0 17 13.4c0-1.7-.8-2.9-1.6-4.1-.4 1-1 1.7-1.9 2.2C13.9 8.6 14 4.9 12 2zM12 22a7.5 7.5 0 0 1-7.5-7.5c0-3 1.7-5.3 3.3-7.2C9.6 5.2 11.4 3.4 12 1c.5 2.3 2.1 4.1 3.5 6 .4-1 1.2-1.9 2-2.4.2 2.4 2 4.6 2 7.4A7.5 7.5 0 0 1 12 22z" transform="scale(0.92) translate(1,0)"/></svg>',
+      check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9.5 18 20 6.5"/></svg>',
+      chart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2" transform="translate(-1,0)"/></svg>',
+      whistle:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h7l-1.5 4H14zM14 8a6.5 6.5 0 1 0 3.2 5.6"/><circle cx="10.5" cy="14.5" r="1.6" fill="currentColor" stroke="none"/></svg>',
+      grid:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>',
+      dumbbell:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.5 6.8v10.4a1.8 1.8 0 0 1-3.6 0V6.8a1.8 1.8 0 0 1 3.6 0zM20.9 6.8v10.4a1.8 1.8 0 0 1-3.6 0V6.8a1.8 1.8 0 0 1 3.6 0zM9.7 5a1.8 1.8 0 0 1 1.8 1.8v10.4a1.8 1.8 0 0 1-3.6 0V6.8A1.8 1.8 0 0 1 9.7 5zM14.3 5a1.8 1.8 0 0 1 1.8 1.8v10.4a1.8 1.8 0 0 1-3.6 0V6.8A1.8 1.8 0 0 1 14.3 5zM6.5 10.6h11v2.8h-11z"/></svg>'
+    };
+
+    /* ---------------- toast ---------------- */
+    var toastTimer = null;
+    function toast(msg){
+      var t = document.getElementById("toast");
+      t.textContent = msg; t.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function(){ t.classList.remove("show"); }, 2600);
+    }
+
+    /* ---------------- gate: create profile / PIN unlock ---------------- */
+    function renderGate(){
+      var gate = document.getElementById("gate");
+      document.getElementById("app").classList.add("hidden");
+      gate.classList.remove("hidden");
+      var mark = '<div class="mark">'+IC.dumbbell+'</div>';
+      if(!state.profile){
+        gate.innerHTML =
+          '<div class="gate">'+mark+
+          '<h1>Gym<br>Tracker</h1>'+
+          '<p class="lede">Your workouts as a game. Check off sets, earn XP, keep the streak alive on the days YOU pick. Your profile and data live only on this phone, never uploaded anywhere.</p>'+
+          '<div class="card" style="margin-top:22px">'+
+            '<h2 style="font-size:22px">Create your profile</h2>'+
+            '<p class="muted small" style="margin-top:4px">Takes 10 seconds. This is a local profile on this device only — no email, no password, no account online.</p>'+
+            '<div style="margin-top:14px"><label class="flabel" for="pfName">Your name</label>'+
+            '<input class="text-in" id="pfName" type="text" maxlength="24" placeholder="e.g. Sebastian" autocomplete="off"></div>'+
+            '<div style="margin-top:12px"><label class="flabel" for="pfPin">Optional 4-digit PIN (locks the app on this phone)</label>'+
+            '<input class="text-in" id="pfPin" type="password" inputmode="numeric" maxlength="4" placeholder="Leave blank for no PIN" autocomplete="off"></div>'+
+            '<div style="margin-top:16px"><label class="flabel">Your workout days</label>'+
+            '<p class="muted small">Pick what happens each day: Session A, Session B, a trainer session (check-in only — your trainer runs it), or rest. Not everybody has a trainer — that\'s fine, just leave those days on a session or rest. You can change this anytime under More → My Schedule.</p>'+
+            schedulePickerHTML("pf", null)+'</div>'+
+            '<div style="margin-top:16px"><button class="btn" type="button" id="pfCreate">Start my first quest</button></div>'+
+          '</div>'+
+          '<p class="muted small" style="margin-top:14px">Got this link from a friend? Perfect — make your own profile above. You get your own quests, XP and streaks on your phone. Nobody can see anybody else\'s data.</p>'+
+          '</div>';
+        document.getElementById("pfCreate").addEventListener("click", function(){
+          var name = document.getElementById("pfName").value.trim();
+          var pin = document.getElementById("pfPin").value.trim();
+          if(!name){ toast("Add your name first."); return; }
+          if(pin && !/^\d{4}$/.test(pin)){ toast("PIN must be exactly 4 digits — or leave it blank."); return; }
+          var sch = readSchedulePicker("pf");
+          if(!sch){ toast("Pick at least one workout day — that's your schedule."); return; }
+          state.schedule = sch;
+          state.profile = { name:name, pin: pin || null };
+          save(); unlocked = true;
+          toast("Profile created. Let's get to work, "+name+".");
+          enterApp();
+        });
+      } else if(state.profile.pin && !unlocked){
+        var dots = "";
+        for(var i=0;i<4;i++) dots += '<span class="'+(i<pinEntry.length?"fill":"")+'"></span>';
+        var pad = "";
+        [1,2,3,4,5,6,7,8,9,"",0,"del"].forEach(function(n){
+          if(n==="") pad += "<span></span>";
+          else if(n==="del") pad += '<button type="button" data-pin="del" aria-label="Delete digit">&#9003;</button>';
+          else pad += '<button type="button" data-pin="'+n+'">'+n+'</button>';
+        });
+        gate.innerHTML =
+          '<div class="gate" style="align-items:center;text-align:center">'+mark+
+          '<h1 style="font-size:34px">Welcome back,<br>'+esc(state.profile.name)+'</h1>'+
+          '<p class="lede" style="text-align:center">Enter your PIN to unlock your quests.</p>'+
+          '<div class="pin-dots" id="pinDots">'+dots+'</div>'+
+          '<div class="pin-pad">'+pad+'</div>'+
+          '<p class="muted small" style="margin-top:18px">Forgot it? The PIN only lives on this phone — clearing the browser data resets the app.</p>'+
+          '</div>';
+        gate.querySelectorAll("[data-pin]").forEach(function(b){
+          b.addEventListener("click", function(){
+            var v = b.getAttribute("data-pin");
+            if(v==="del") pinEntry = pinEntry.slice(0,-1);
+            else if(pinEntry.length<4) pinEntry += v;
+            if(pinEntry.length===4){
+              if(pinEntry===state.profile.pin){ unlocked = true; pinEntry=""; enterApp(); return; }
+              var d = document.getElementById("pinDots");
+              d.classList.add("shake");
+              setTimeout(function(){ pinEntry=""; renderGate(); }, 320);
+              return;
+            }
+            renderGate();
+          });
+        });
+      } else {
+        enterApp();
+      }
+    }
+    function enterApp(){
+      document.getElementById("gate").classList.add("hidden");
+      document.getElementById("app").classList.remove("hidden");
+      renderAll();
+    }
+
+    /* ---------------- HUD ---------------- */
+    function renderHUD(){
+      var xp = computeXP(); var lv = levelFor(xp);
+      document.getElementById("hudAvatar").textContent = (state.profile.name||"?").charAt(0).toUpperCase();
+      document.getElementById("hudName").textContent = state.profile.name;
+      document.getElementById("hudTitle").textContent = lv.title+" · "+totalWorkouts()+" workouts done";
+      document.getElementById("hudStreak").innerHTML = IC.flame+" "+currentStreak();
+      document.getElementById("hudLevel").textContent = "LVL "+lv.level;
+      document.getElementById("xpFill").style.width = Math.round(lv.into/lv.span*100)+"%";
+      document.getElementById("xpText").textContent = xp+" XP total";
+      document.getElementById("xpNext").textContent = (lv.ceil-xp)+" XP to level "+(lv.level+1);
+    }
+
+    /* ---------------- quest view ---------------- */
+    function weekStripHTML(){
+      var sel = parseKey(selectedDate);
+      var dow = (sel.getDay()+6)%7;
+      var mon = addDays(new Date(sel.getFullYear(), sel.getMonth(), sel.getDate()), -dow);
+      var names = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+      var html = '<div class="week">';
+      for(var i=0;i<7;i++){
+        var d = addDays(mon, i); var k = keyOf(d); var st = dayStatus(k);
+        var stTxt = st==="done" ? "DONE" : st==="missed" ? "MISSED" : st==="planned" ? "QUEST" : "REST";
+        html += '<button type="button" class="day-dot '+(k===selectedDate?"sel":"")+' '+st+'" data-date="'+k+'">'+names[i]+
+                '<span class="d">'+d.getDate()+'</span><span class="st">'+stTxt+'</span></button>';
+      }
+      return html+'</div>';
+    }
+    function renderQuest(){
+      var el = document.getElementById("view-quest");
+      var k = selectedDate;
+      var d = parseKey(k);
+      var type = planFor(d);
+      var isToday = k===todayKey();
+      var html = weekStripHTML();
+
+      if(!type){
+        var next = scheduledKeysBack(keyOf(addDays(new Date(), 14)), 99).filter(function(x){ return x>=todayKey(); }).sort()[0];
+        // find next scheduled day properly:
+        var nd = new Date(); var guard=0;
+        while(!planFor(nd) && guard<8){ nd = addDays(nd,1); guard++; }
+        next = keyOf(nd);
+        html += '<div class="quest-banner rest"><span class="tag">Rest day</span>'+
+          '<h1>'+(isToday?"Recovery mode":"Rest day")+'</h1>'+
+          '<p class="sub">'+prettyDate(k)+' — no quest today. Muscles are built between sessions: eat, hydrate, sleep. Next quest: <b style="color:var(--ink)">'+SESSIONS[planFor(nd)].label+' · '+prettyDate(next)+'</b>.</p></div>'+
+          '<div class="card"><h2>Rest-day checklist</h2>'+
+          '<p class="muted small" style="margin-top:6px">Not scored, just smart: protein at every meal, water through the day, and screens off early enough to actually sleep. Show up to your next session recovered, not just rested.</p></div>';
+      } else if(type==="T"){
+        var rec = getDay(k);
+        html += '<div class="quest-banner '+(rec.trainer?"done":"")+'"><span class="tag">'+(isToday?"Today's quest":"Quest")+'</span>'+
+          '<h1>Trainer Session</h1>'+
+          '<p class="sub">'+prettyDate(k)+' · Private session with your personal trainer. He runs the workout — your job is to show up and work. Check in when you\'re there.</p></div>'+
+          '<div class="card"><button type="button" class="checkin-big '+(rec.trainer?"on":"")+'" id="trainerCheck">'+(rec.trainer?"Checked in · +80 XP":"Check in — I\'m here")+'</button>'+
+          '<div class="ex-foot"><span class="lbl">Session effort</span>'+
+          '<select class="effort-sel" id="trainerEffort"><option value="">—</option>'+
+          [1,2,3,4,5,6,7,8,9,10].map(function(n){ return '<option value="'+n+'"'+(rec.effort.session===n?" selected":"")+'>'+n+' / 10</option>'; }).join("")+
+          '</select>'+
+          '<button type="button" class="pain-btn '+(rec.pain.session?"on":"")+'" id="trainerPain">Pain flag</button></div>'+
+          '<p class="muted small" style="margin-top:10px">Tell your trainer about any pain flag right away — that\'s literally what he\'s there for.</p></div>';
+      } else {
+        var sess = SESSIONS[type];
+        var day = getDay(k);
+        var doneCount = 0;
+        sess.exercises.forEach(function(ex){ if(exerciseComplete(k, ex.id)) doneCount++; });
+        var allDone = dayComplete(k);
+        html += '<div class="quest-banner '+(allDone?"done":"")+'"><span class="tag">'+(isToday?"Today's quest":"Quest · "+prettyDate(k))+'</span>'+
+          '<h1>'+sess.label+' — '+DAY_NAMES[d.getDay()]+'</h1>'+
+          '<p class="sub">'+sess.sub+'</p>'+
+          '<p class="sub" style="margin-top:8px"><b style="color:var(--volt)">'+doneCount+' / '+sess.exercises.length+' exercises complete</b>'+(allDone?' · Quest cleared — +60 XP bonus banked.':" · Finish all of them for the +60 XP quest bonus.")+'</p></div>';
+
+        sess.exercises.forEach(function(ex){
+          var sets = day.sets[ex.id];
+          var complete = exerciseComplete(k, ex.id);
+          var anyPR = sets.some(function(s){ return s.done && isPR(k, ex.id, s.w); });
+          html += '<div class="ex-card '+(complete?"complete":"")+'" data-ex="'+ex.id+'">'+
+            '<div class="ex-head"><div><h3 class="ex-name">'+ex.name+(anyPR?'<span class="pr-tag">PR</span>':"")+'</h3>'+
+            '<div class="ex-target">'+ex.sets+' sets × '+ex.reps+(ex.weight? ' · start @ '+ex.weight+' '+ex.unit : ' · bodyweight')+'</div>'+
+            '<button type="button" class="tip-btn" data-tip="'+ex.id+'">Form tips</button>'+
+            '<div class="tip-box" id="tip-'+ex.id+'">'+esc(ex.tip)+'</div></div>'+
+            '<div class="ex-xp">'+(complete? "+"+(ex.sets*XP.set+XP.exerciseDone)+" XP" : ex.sets*XP.set+" XP up for grabs")+'</div></div>';
+          sets.forEach(function(s, i){
+            html += '<div class="set-row">'+
+              '<span class="set-num">Set '+(i+1)+'</span>'+
+              '<div class="set-fields">'+
+                (ex.weight!=null
+                  ? '<div class="field"><label>Weight (lb)</label><input type="number" inputmode="decimal" min="0" step="2.5" value="'+s.w+'" data-w="'+ex.id+':'+i+'"></div>'
+                  : '<div class="field"><label>Load</label><input type="text" value="BW" disabled></div>')+
+                '<div class="field"><label>'+(ex.id==="plank"?"Seconds":"Reps")+'</label><input type="number" inputmode="numeric" min="0" placeholder="'+(ex.id==="plank"?"45":"")+'" value="'+s.r+'" data-r="'+ex.id+':'+i+'"></div>'+
+              '</div>'+
+              '<button type="button" class="set-check '+(s.done?"on":"")+'" data-check="'+ex.id+':'+i+'" aria-label="Check off set '+(i+1)+' of '+ex.name+'">'+IC.check+'</button>'+
+            '</div>';
+          });
+          var eff = day.effort[ex.id] || "";
+          html += '<div class="ex-foot"><span class="lbl">Effort</span>'+
+            '<select class="effort-sel" data-effort="'+ex.id+'"><option value="">—</option>'+
+            [1,2,3,4,5,6,7,8,9,10].map(function(n){ return '<option value="'+n+'"'+(String(eff)===String(n)?" selected":"")+'>'+n+' / 10</option>'; }).join("")+
+            '</select>'+
+            '<button type="button" class="pain-btn '+(day.pain[ex.id]?"on":"")+'" data-pain="'+ex.id+'">Pain flag</button>'+
+            (complete?'<span style="color:var(--volt);font-weight:700;font-size:13.5px">Exercise complete</span>':"")+
+            '</div></div>';
+        });
+      }
+      el.innerHTML = html;
+      bindQuest(el, k);
+    }
+    function bindQuest(el, k){
+      el.querySelectorAll("[data-date]").forEach(function(b){
+        b.addEventListener("click", function(){ selectedDate = b.getAttribute("data-date"); renderQuest(); });
+      });
+      el.querySelectorAll("[data-tip]").forEach(function(b){
+        b.addEventListener("click", function(){
+          var box = document.getElementById("tip-"+b.getAttribute("data-tip"));
+          if(box) box.classList.toggle("open");
+        });
+      });
+      el.querySelectorAll("[data-check]").forEach(function(b){
+        b.addEventListener("click", function(){
+          var parts = b.getAttribute("data-check").split(":"); var exId = parts[0], idx = +parts[1];
+          var day = getDay(k); var s = day.sets[exId][idx];
+          var before = computeXP();
+          s.done = !s.done;
+          save();
+          if(s.done){
+            var gained = computeXP()-before;
+            if(isPR(k, exId, s.w)) toast("New PR on "+exerciseName(exId)+" — "+s.w+" lb! +"+gained+" XP");
+            else toast("Set checked off · +"+gained+" XP");
+            if(dayComplete(k)) setTimeout(function(){ toast("Quest complete! Bonus XP banked."); }, 350);
+          }
+          renderAll();
+        });
+      });
+      el.querySelectorAll("[data-w]").forEach(function(inp){
+        inp.addEventListener("change", function(){
+          var parts = inp.getAttribute("data-w").split(":");
+          var day = getDay(k);
+          day.sets[parts[0]][+parts[1]].w = Math.max(0, parseFloat(inp.value)||0);
+          save(); renderAll();
+        });
+      });
+      el.querySelectorAll("[data-r]").forEach(function(inp){
+        inp.addEventListener("change", function(){
+          var parts = inp.getAttribute("data-r").split(":");
+          var day = getDay(k);
+          day.sets[parts[0]][+parts[1]].r = inp.value;
+          save();
+        });
+      });
+      el.querySelectorAll("[data-effort]").forEach(function(sel){
+        sel.addEventListener("change", function(){
+          var day = getDay(k);
+          day.effort[sel.getAttribute("data-effort")] = sel.value? +sel.value : null;
+          save();
+        });
+      });
+      el.querySelectorAll("[data-pain]").forEach(function(b){
+        b.addEventListener("click", function(){
+          var day = getDay(k); var id = b.getAttribute("data-pain");
+          day.pain[id] = !day.pain[id];
+          save();
+          if(day.pain[id]) toast("Pain flagged. Coach has notes for you — check the Coach tab.");
+          renderAll();
+        });
+      });
+      var tc = document.getElementById("trainerCheck");
+      if(tc) tc.addEventListener("click", function(){
+        var day = getDay(k); day.trainer = !day.trainer; save();
+        if(day.trainer) toast("Checked in · +80 XP. Go work.");
+        renderAll();
+      });
+      var te = document.getElementById("trainerEffort");
+      if(te) te.addEventListener("change", function(){
+        var day = getDay(k); day.effort.session = te.value? +te.value : null; save();
+      });
+      var tp = document.getElementById("trainerPain");
+      if(tp) tp.addEventListener("click", function(){
+        var day = getDay(k); day.pain.session = !day.pain.session; save(); renderAll();
+      });
+    }
+
+    /* ---------------- progress view ---------------- */
+    function weightChartSVG(){
+      var pts = state.weights.slice().sort(function(a,b){ return a.date<b.date?-1:1; });
+      if(pts.length<2) return '<p class="muted small" style="margin-top:10px">Log at least two weigh-ins and your progress line shows up here.</p>';
+      var W=560, H=190, PL=44, PR=12, PT=14, PB=26;
+      var vals = pts.map(function(p){ return p.lbs; });
+      var min = Math.min.apply(null, vals), max = Math.max.apply(null, vals);
+      if(max-min<4){ var mid=(max+min)/2; min=mid-2; max=mid+2; }
+      var iw = W-PL-PR, ih = H-PT-PB;
+      function X(i){ return PL + (pts.length===1? iw/2 : iw*i/(pts.length-1)); }
+      function Y(v){ return PT + ih - (v-min)/(max-min)*ih; }
+      var line = pts.map(function(p,i){ return (i===0?"M":"L")+X(i).toFixed(1)+","+Y(p.lbs).toFixed(1); }).join(" ");
+      var dots = pts.map(function(p,i){ return '<circle cx="'+X(i)+'" cy="'+Y(p.lbs)+'" r="4" fill="#b7f04a"/>'; }).join("");
+      return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block;margin-top:10px" role="img" aria-label="Bodyweight over time chart">'+
+        '<line x1="'+PL+'" y1="'+PT+'" x2="'+PL+'" y2="'+(PT+ih)+'" stroke="#262d33"/>'+
+        '<line x1="'+PL+'" y1="'+(PT+ih)+'" x2="'+(W-PR)+'" y2="'+(PT+ih)+'" stroke="#262d33"/>'+
+        '<text x="'+(PL-6)+'" y="'+(Y(max)+4)+'" fill="#93a29b" font-size="12" text-anchor="end">'+max.toFixed(0)+'</text>'+
+        '<text x="'+(PL-6)+'" y="'+(Y(min)+4)+'" fill="#93a29b" font-size="12" text-anchor="end">'+min.toFixed(0)+'</text>'+
+        '<text x="'+(PL-6)+'" y="'+(Y((max+min)/2)+4)+'" fill="#93a29b" font-size="12" text-anchor="end">lb</text>'+
+        '<path d="'+line+'" fill="none" stroke="#b7f04a" stroke-width="2.5" stroke-linejoin="round"/>'+ dots +
+        '<text x="'+PL+'" y="'+(H-6)+'" fill="#93a29b" font-size="12">'+esc(prettyDate(pts[0].date))+'</text>'+
+        '<text x="'+(W-PR)+'" y="'+(H-6)+'" fill="#93a29b" font-size="12" text-anchor="end">'+esc(prettyDate(pts[pts.length-1].date))+'</text>'+
+        '</svg>';
+    }
+    function sortedWeights(){ return state.weights.slice().sort(function(a,b){ return a.date<b.date?-1:1; }); }
+    function sortedMeasures(){ return state.measures.slice().sort(function(a,b){ return a.date<b.date?-1:1; }); }
+
+    function renderProgress(){
+      var el = document.getElementById("view-progress");
+      var s = progressScore();
+      var w = sortedWeights();
+      var latestW = w.length? w[w.length-1] : null;
+      var firstW = w.length? w[0] : null;
+      var wDiff = (w.length>=2)? Math.round((latestW.lbs-firstW.lbs)*10)/10 : null;
+      var m = sortedMeasures();
+      var latestM = m.length? m[m.length-1] : null;
+
+      var html = '<h2 class="sect-title">Progress Score</h2>'+
+      '<div class="card" style="margin-top:10px"><div style="display:flex;gap:16px;align-items:flex-start">'+
+        '<div class="score-num">'+s.total+'</div>'+
+        '<div><p style="font-weight:700">out of 100</p><p class="muted small" style="margin-top:3px">'+esc(scoreVerdict(s))+'</p></div></div>'+
+        '<p class="muted small" style="margin-top:10px">This score rates your <b style="color:var(--ink)">progress and effort</b> — showing up, getting stronger, tracking your numbers. It is never a grade on how your body looks.</p>'+
+        scoreRow("Consistency", s.consistency, 45, s.consistencyPct+"% of scheduled days done (last 4 weeks)")+
+        scoreRow("Strength progression", s.strength, 35, s.avgGainPct+"% average gain vs your starting weights")+
+        scoreRow("Tracking habits", s.tracking, 20, state.weights.length+" weigh-ins · "+state.measures.length+" measurement logs · "+state.photos.length+" photos")+
+      '</div>';
+
+      /* weight */
+      html += '<h2 class="sect-title">Bodyweight</h2><div class="card" style="margin-top:10px">'+
+        (latestW
+          ? '<div class="stat-grid" style="margin-top:0"><div class="stat"><div class="v">'+latestW.lbs+'</div><div class="k">Current (lb)</div></div>'+
+            '<div class="stat"><div class="v">'+(wDiff===null?"—":(wDiff>0?"+":"")+wDiff)+'</div><div class="k">Change (lb)</div></div>'+
+            '<div class="stat"><div class="v">'+w.length+'</div><div class="k">Weigh-ins</div></div></div>'
+          : '<p class="muted">No weigh-ins yet. Once a week, same time of day — morning works best.</p>')+
+        weightChartSVG()+
+        '<div class="form-grid"><div><label class="flabel" for="wDate">Date</label><input class="text-in" id="wDate" type="date" value="'+todayKey()+'"></div>'+
+        '<div><label class="flabel" for="wVal">Weight (lb)</label><input class="text-in" id="wVal" type="number" inputmode="decimal" step="0.1" min="40" max="600" placeholder="e.g. 132.5"></div></div>'+
+        '<div class="btn-row"><button class="btn" type="button" id="wAdd">Log weight · +15 XP</button></div>'+
+        (w.length? '<table class="hist"><tr><th>Date</th><th>Weight</th><th></th></tr>'+ w.slice(-5).reverse().map(function(p){
+            return '<tr><td>'+esc(prettyDate(p.date))+'</td><td>'+p.lbs+' lb</td><td style="text-align:right"><button type="button" class="tip-btn" data-delw="'+p.date+':'+p.lbs+'">Delete</button></td></tr>';
+          }).join("")+'</table>' : "")+
+      '</div>';
+
+      /* physique rating — progress over time, after Bodyweight, before Coach's Corner content */
+      html += review_physique_card();
+
+      /* measurements */
+      html += '<h2 class="sect-title">Measurements</h2><div class="card" style="margin-top:10px">'+
+        '<p class="muted small">Tape measurements in inches, every 2–4 weeks. Waist at the navel, chest at the widest point, arm flexed, thigh at the widest point. Same spots every time.</p>'+
+        (latestM? '<div class="stat-grid" style="grid-template-columns:repeat(4,1fr)">'+
+          mStat("Waist", latestM.waist)+mStat("Chest", latestM.chest)+mStat("Arm", latestM.arm)+mStat("Thigh", latestM.thigh)+'</div>' : "")+
+        '<div class="form-grid">'+
+          '<div><label class="flabel" for="mDate">Date</label><input class="text-in" id="mDate" type="date" value="'+todayKey()+'"></div>'+
+          '<div><label class="flabel" for="mWaist">Waist (in)</label><input class="text-in" id="mWaist" type="number" inputmode="decimal" step="0.25" placeholder="—"></div>'+
+          '<div><label class="flabel" for="mChest">Chest (in)</label><input class="text-in" id="mChest" type="number" inputmode="decimal" step="0.25" placeholder="—"></div>'+
+          '<div><label class="flabel" for="mArm">Arm (in)</label><input class="text-in" id="mArm" type="number" inputmode="decimal" step="0.25" placeholder="—"></div>'+
+          '<div class="full"><label class="flabel" for="mThigh">Thigh (in)</label><input class="text-in" id="mThigh" type="number" inputmode="decimal" step="0.25" placeholder="—"></div>'+
+        '</div>'+
+        '<div class="btn-row"><button class="btn" type="button" id="mAdd">Log measurements · +20 XP</button></div>'+
+        (m.length? '<table class="hist"><tr><th>Date</th><th>Waist</th><th>Chest</th><th>Arm</th><th>Thigh</th></tr>'+ m.slice(-4).reverse().map(function(p){
+            return '<tr><td>'+esc(prettyDate(p.date))+'</td><td>'+orDash(p.waist)+'</td><td>'+orDash(p.chest)+'</td><td>'+orDash(p.arm)+'</td><td>'+orDash(p.thigh)+'</td></tr>';
+          }).join("")+'</table>' : "")+
+      '</div>';
+
+      /* photos */
+      var photos = state.photos.slice().sort(function(a,b){ return a.date<b.date?-1:1; });
+      if(!compareIds.a && photos.length) compareIds.a = photos[0].id;
+      if(!compareIds.b && photos.length) compareIds.b = photos[photos.length-1].id;
+      var pa = photos.filter(function(p){ return p.id===compareIds.a; })[0];
+      var pb = photos.filter(function(p){ return p.id===compareIds.b; })[0];
+      html += '<h2 class="sect-title">Progress Photos</h2><div class="card" id="prPhotosCard" style="margin-top:10px">'+
+        '<p class="muted small">Photos are saved <b style="color:var(--ink)">only in this browser, on this phone</b>. They are never uploaded, shared, or sent anywhere — there is no server. Same lighting, same spot, every 2–4 weeks works best.</p>'+
+        '<div class="btn-row"><label class="btn" for="photoInput" style="margin:0">Add progress photo · +10 XP</label>'+
+        '<input id="photoInput" type="file" accept="image/*" class="hidden"></div>'+
+        (photos.length>=2 && pa && pb
+          ? '<h3 style="margin-top:18px">Before / after</h3><div class="compare">'+
+            '<figure><img src="'+pa.data+'" alt="Earlier progress photo"><figcaption>'+esc(prettyDate(pa.date))+'</figcaption></figure>'+
+            '<figure><img src="'+pb.data+'" alt="Later progress photo"><figcaption>'+esc(prettyDate(pb.date))+'</figcaption></figure></div>'+
+            '<div class="form-grid"><div><label class="flabel">Before</label><select class="text-in" id="cmpA">'+photos.map(function(p){ return '<option value="'+p.id+'"'+(p.id===compareIds.a?" selected":"")+'>'+esc(prettyDate(p.date))+'</option>'; }).join("")+'</select></div>'+
+            '<div><label class="flabel">After</label><select class="text-in" id="cmpB">'+photos.map(function(p){ return '<option value="'+p.id+'"'+(p.id===compareIds.b?" selected":"")+'>'+esc(prettyDate(p.date))+'</option>'; }).join("")+'</select></div></div>'
+          : photos.length===1 ? '<p class="muted small" style="margin-top:10px">One photo saved. Add a second one later to unlock the before/after comparison.</p>' : "")+
+        (photos.length? '<div class="photo-grid">'+ photos.map(function(p){
+            return '<div class="photo-cell"><img src="'+p.data+'" alt="Progress photo from '+esc(prettyDate(p.date))+'"><span class="pd">'+esc(prettyDate(p.date))+'</span><button type="button" class="del" data-delphoto="'+p.id+'" aria-label="Delete this photo">&times;</button></div>';
+          }).join("")+'</div>' : "")+
+      '</div>';
+
+      el.innerHTML = html;
+
+      var prCta = document.getElementById("prCta");
+      if(prCta) prCta.addEventListener("click", scrollToPhotosCard);
+      var prPhotoLine = document.getElementById("prPhotoLine");
+      if(prPhotoLine) prPhotoLine.addEventListener("click", scrollToPhotosCard);
+
+      document.getElementById("wAdd").addEventListener("click", function(){
+        var d = document.getElementById("wDate").value || todayKey();
+        var v = parseFloat(document.getElementById("wVal").value);
+        if(!v || v<40 || v>600){ toast("Enter a weight that looks right."); return; }
+        state.weights.push({ date:d, lbs: Math.round(v*10)/10 });
+        save(); toast("Weight logged · +15 XP"); renderAll();
+      });
+      el.querySelectorAll("[data-delw]").forEach(function(b){
+        b.addEventListener("click", function(){
+          var parts = b.getAttribute("data-delw").split(":");
+          state.weights = state.weights.filter(function(p){ return !(p.date===parts[0] && String(p.lbs)===parts[1]); });
+          save(); renderAll();
+        });
+      });
+      document.getElementById("mAdd").addEventListener("click", function(){
+        function num(id){ var v = parseFloat(document.getElementById(id).value); return isNaN(v)? null : Math.round(v*100)/100; }
+        var rec = { date: document.getElementById("mDate").value || todayKey(),
+                    waist:num("mWaist"), chest:num("mChest"), arm:num("mArm"), thigh:num("mThigh") };
+        if(rec.waist===null && rec.chest===null && rec.arm===null && rec.thigh===null){ toast("Enter at least one measurement."); return; }
+        state.measures.push(rec);
+        save(); toast("Measurements logged · +20 XP"); renderAll();
+      });
+      var pi = document.getElementById("photoInput");
+      pi.addEventListener("change", function(){
+        var f = pi.files && pi.files[0]; if(!f) return;
+        var reader = new FileReader();
+        reader.onload = function(){
+          var img = new Image();
+          img.onload = function(){
+            var maxW = 800, scale = Math.min(1, maxW/img.width);
+            var c = document.createElement("canvas");
+            c.width = Math.round(img.width*scale); c.height = Math.round(img.height*scale);
+            c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+            var data = c.toDataURL("image/jpeg", 0.78);
+            state.photos.push({ id:"p"+Date.now(), date: todayKey(), data:data });
+            compareIds.b = state.photos[state.photos.length-1].id;
+            save(); toast("Photo saved on this phone only · +10 XP"); renderAll();
+          };
+          img.src = reader.result;
+        };
+        reader.readAsDataURL(f);
+      });
+      el.querySelectorAll("[data-delphoto]").forEach(function(b){
+        b.addEventListener("click", function(){
+          state.photos = state.photos.filter(function(p){ return p.id!==b.getAttribute("data-delphoto"); });
+          compareIds = { a:null, b:null };
+          save(); renderAll();
+        });
+      });
+      var cA = document.getElementById("cmpA"), cB = document.getElementById("cmpB");
+      if(cA) cA.addEventListener("change", function(){ compareIds.a = cA.value; renderProgress(); });
+      if(cB) cB.addEventListener("change", function(){ compareIds.b = cB.value; renderProgress(); });
+    }
+    function scoreRow(label, val, max, note){
+      return '<div class="score-row"><div class="r-head"><span>'+label+'</span><span>'+val+' / '+max+'</span></div>'+
+             '<div class="score-bar"><div style="width:'+Math.round(val/max*100)+'%"></div></div>'+
+             '<p class="muted small" style="margin-top:4px">'+esc(note)+'</p></div>';
+    }
+    function mStat(k, v){ return '<div class="stat"><div class="v">'+(v==null?"—":v)+'</div><div class="k">'+k+' (in)</div></div>'; }
+    function orDash(v){ return v==null? "—" : v; }
+
+    /* ---------------- coach view ---------------- */
+    function renderCoach(){
+      var el = document.getElementById("view-coach");
+      var notes = coachNotes();
+      var html = '<h2 class="sect-title">Coach\'s Corner</h2>'+
+        '<p class="muted" style="margin-top:4px">Your coach reads your actual logs — checkoffs, weights, effort, pain flags — and calls it straight. No generic tips, no fluff.</p>';
+      notes.forEach(function(n){
+        html += '<div class="coach-card '+n.tone+'"><div class="who">Coach</div><h3>'+esc(n.title)+'</h3><p class="small" style="margin-top:2px">'+esc(n.body)+'</p></div>';
+      });
+      var imp = improvedLifts();
+      html += '<div class="card"><h2>Strength report</h2>';
+      if(imp.length){
+        html += '<table class="hist"><tr><th>Lift</th><th>Started</th><th>Best now</th></tr>'+
+          imp.map(function(x){ return '<tr><td>'+esc(x.name)+'</td><td>'+x.from+' lb</td><td style="color:var(--volt);font-weight:700">'+x.to+' lb</td></tr>'; }).join("")+'</table>';
+      } else {
+        html += '<p class="muted small" style="margin-top:6px">No lifts have beaten their starting weight by 5 lb yet. When a full session at a weight feels like a 7–8 effort with clean form, add 2.5–5 lb next time — small, steady jumps. Loads stay moderate; never chase a max.</p>';
+      }
+      html += '<p class="muted small" style="margin-top:12px">Standing rules: stop any exercise that causes sharp pain and tell a parent or your trainer. Eat enough to fuel training and growth — this coach will never tell you to starve a workout.</p></div>';
+      el.innerHTML = html;
+    }
+
+    /* ---------------- more view: badges, install, reminders, share, github ---------------- */
+    var SW_CODE = [
+      "/* Gym Tracker service worker — save as sw.js next to index.html */",
+      "const CACHE = 'gym-tracker-v1';",
+      "const FILES = ['./', './index.html', './manifest.json'];",
+      "self.addEventListener('install', e => {",
+      "  e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));",
+      "});",
+      "self.addEventListener('activate', e => { e.waitUntil(self.clients.claim()); });",
+      "self.addEventListener('fetch', e => {",
+      "  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));",
+      "});"
+    ].join("\n");
+    var MANIFEST_CODE = [
+      '{',
+      '  "name": "Gym Tracker", "short_name": "Gym Tracker",',
+      '  "start_url": ".", "scope": ".", "display": "standalone",',
+      '  "background_color": "#0b0e11", "theme_color": "#0b0e11",',
+      '  "icons": [',
+      '    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },',
+      '    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }',
+      '  ]',
+      '}'
+    ].join("\n");
+
+    function renderMore(){
+      var el = document.getElementById("view-more");
+      var badges = computeBadges();
+      var got = badges.filter(function(b){ return b.got; }).length;
+      var inIframe = window.self !== window.top;
+      var standalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+
+      var html = '<h2 class="sect-title">Trophy Case</h2>'+
+      '<p class="muted small">'+got+' of '+badges.length+' badges earned. Best streak: '+bestStreak()+' workout days · Perfect-week streak: '+perfectWeekStreak()+'.</p>'+
+      '<div class="badge-grid">'+ badges.map(function(b){
+          return '<div class="badge '+(b.got?"unlocked":"locked")+'">'+TROPHY+'<div class="bn">'+esc(b.name)+'</div><div class="bd">'+esc(b.desc)+'</div></div>';
+        }).join("")+'</div>';
+
+      /* my schedule */
+      html += '<h2 class="sect-title">My Schedule</h2><div class="card" style="margin-top:10px">'+
+        '<p>Your workout days are yours to set — quests, streaks, XP and the Progress Score all follow <b>your</b> days. A rest day never breaks a streak; only a missed day you picked does.</p>'+
+        '<p class="muted small" style="margin-top:6px">No trainer? No problem — set that day to Session A or B, or rest. Trainer days stay check-in only: no programmed exercises, your trainer runs those.</p>'+
+        '<div style="margin-top:8px">'+schedulePickerHTML("ms", effectiveSchedule())+'</div>'+
+        '<div class="btn-row"><button class="btn" type="button" id="schedSave">Save my schedule</button></div>'+
+      '</div>';
+
+      /* share */
+      html += '<h2 class="sect-title">Share With Friends</h2><div class="card" style="margin-top:10px">'+
+        '<p>Send the link to this app to a friend and they get the exact same tracker — with <b>their own</b> profile, XP and streaks on <b>their own</b> phone.</p>'+
+        '<p class="muted small" style="margin-top:8px">Real talk: there is no shared leaderboard and nobody can see anybody else\'s data. The app has no server — everything is saved privately on each person\'s device. That\'s a feature: your numbers stay yours.</p>'+
+        '<p class="small" style="margin-top:10px">To share it: send your friends the link to this page (the GitHub Pages address once it\'s hosted — copy it from the browser address bar, or use the Share button wherever you\'re viewing this). They open it, tap "Start my first quest," and they\'re in.</p>'+
+      '</div>';
+
+      /* install */
+      html += '<h2 class="sect-title">Install As An App</h2><div class="card" style="margin-top:10px">'+
+        (standalone
+          ? '<p style="font-weight:700;color:var(--volt)">You\'re running the installed app right now. Full screen, home-screen icon, works offline once hosted with the service worker.</p>'
+          : '<p>Free, no App Store, takes 20 seconds. On <b>iPhone</b>:</p>'+
+            '<ol class="steps"><li>Open this page in <b>Safari</b> (the link has to be the real hosted one).</li>'+
+            '<li>Tap the <b>Share</b> button (square with an arrow pointing up).</li>'+
+            '<li>Scroll down and tap <b>Add to Home Screen</b>.</li>'+
+            '<li>Tap <b>Add</b>. Gym Tracker now sits on your home screen like a real app.</li></ol>'+
+            '<p class="muted small" style="margin-top:6px">On Android/Chrome: open the link, tap the three-dot menu, then <b>Install app</b> or <b>Add to Home screen</b>.</p>')+
+      '</div>';
+
+      /* reminders — honest version */
+      html += '<h2 class="sect-title">Reminders</h2><div class="card" style="margin-top:10px">'+
+        '<p><b>The straight truth about notifications:</b> this app is a static page with no server, so it can\'t send you background push notifications by itself — any app that promises that without a server is faking it.</p>'+
+        '<p class="muted small" style="margin-top:8px">So here\'s how reminders actually work:</p>'+
+        '<p class="small" style="margin-top:8px"><b style="color:var(--ink)">For Sebastian:</b> your push nudges come from Muse, your assistant, which already reminds you on gym days. This app\'s job is to show today\'s quest the second you open it — that\'s why it lives on your home screen.</p>'+
+        '<p class="small" style="margin-top:8px"><b style="color:var(--ink)">For friends:</b> Muse\'s reminders only reach Sebastian — they don\'t go to you. Set your own phone reminder instead: download the gym-days calendar below and your phone will nudge you on the workout days you picked in My Schedule. Same effect, zero fake promises.</p>'+
+        '<div class="btn-row"><button class="btn secondary" type="button" id="icsBtn">Download gym-day reminders (.ics)</button></div>'+
+        '<p class="muted small" style="margin-top:8px">Opens in Apple Calendar / Google Calendar — weekly on your workout days at 4:00 PM: "Open Gym Tracker — today\'s quest is waiting."</p>'+
+      '</div>';
+
+      /* github */
+      html += '<h2 class="sect-title">Put It On GitHub</h2><div class="card" style="margin-top:10px">'+
+        '<p>This whole app is one file. To host it free on GitHub Pages:</p>'+
+        '<ol class="steps"><li>Create a new public repo (e.g. <b>gym-tracker</b>).</li>'+
+        '<li>Upload this page saved as <b>index.html</b>.</li>'+
+        '<li>Add the two helper files below — <b>sw.js</b> makes it work offline, <b>manifest.json</b> powers the install.</li>'+
+        '<li>Repo <b>Settings → Pages → Deploy from branch → main</b>. Your link goes live in about a minute.</li></ol>'+
+        '<details><summary>sw.js — tap to view / copy</summary><div class="codebox">'+esc(SW_CODE)+'</div>'+
+        '<div class="btn-row"><button class="btn secondary" type="button" id="dlSw">Download sw.js</button></div></details>'+
+        '<details><summary>manifest.json — tap to view / copy</summary><div class="codebox">'+esc(MANIFEST_CODE)+'</div>'+
+        '<div class="btn-row"><button class="btn secondary" type="button" id="dlManifest">Download manifest.json</button></div></details>'+
+        '<p class="muted small" style="margin-top:10px">Icons: any 192×192 and 512×512 PNG named icon-192.png / icon-512.png works next to the manifest.</p>'+
+      '</div>';
+
+      /* profile */
+      html += '<h2 class="sect-title">Profile</h2><div class="card" style="margin-top:10px">'+
+        '<p>Signed in as <b>'+esc(state.profile.name)+'</b> · Level '+levelFor(computeXP()).level+' '+levelFor(computeXP()).title+'</p>'+
+        '<p class="muted small" style="margin-top:6px">Your data lives only in this browser on this device. Switching phones or clearing browser data starts you fresh — that\'s the trade-off of a free, private, no-account app.</p>'+
+        '<div class="btn-row"><button class="btn secondary" type="button" id="lockBtn">'+(state.profile.pin?"Lock app":"Sign out view")+'</button>'+
+        '<button class="btn danger" type="button" id="wipeBtn">Erase everything</button></div>'+
+      '</div>';
+
+      el.innerHTML = html;
+
+      document.getElementById("schedSave").addEventListener("click", function(){
+        var sch = readSchedulePicker("ms");
+        if(!sch){ toast("Pick at least one workout day first."); return; }
+        state.schedule = sch;
+        // Rebuild upcoming days that haven't been started yet so they match the new plan;
+        // anything already logged (sets done / trainer checked in) is left untouched.
+        Object.keys(state.days).forEach(function(k){
+          if(k>=todayKey() && !dayStarted(k) && state.days[k].type !== planFor(parseKey(k))) delete state.days[k];
+        });
+        save(); toast("Schedule saved — quests and streaks follow your days now."); renderAll();
+      });
+      document.getElementById("icsBtn").addEventListener("click", downloadICS);
+      document.getElementById("dlSw").addEventListener("click", function(){ downloadText("sw.js", SW_CODE, "text/javascript"); });
+      document.getElementById("dlManifest").addEventListener("click", function(){ downloadText("manifest.json", MANIFEST_CODE, "application/json"); });
+      document.getElementById("lockBtn").addEventListener("click", function(){
+        unlocked = false; pinEntry = "";
+        window.scrollTo(0,0); renderGate();
+      });
+      document.getElementById("wipeBtn").addEventListener("click", function(){
+        if(this.getAttribute("data-arm")==="1"){
+          localStorage.removeItem(LS_KEY);
+          state = blankState(); unlocked = false; pinEntry = "";
+          window.scrollTo(0,0); renderGate();
+        } else {
+          this.setAttribute("data-arm","1"); this.textContent = "Tap again to confirm erase";
+          setTimeout(function(){ var b=document.getElementById("wipeBtn"); if(b){ b.removeAttribute("data-arm"); b.textContent="Erase everything"; } }, 3500);
+        }
+      });
+    }
+    function downloadText(name, text, type){
+      var blob = new Blob([text], { type:type });
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(blob); a.download = name;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
+    }
+    function downloadICS(){
+      function stamp(daysFromNow, hour){
+        var d = new Date(); d.setDate(d.getDate()+daysFromNow); d.setHours(hour,0,0,0);
+        return d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+"T"+pad(d.getHours())+"0000";
+      }
+      // first workout day on/after today, from the user's own schedule
+      var sch = effectiveSchedule();
+      var codes = { 0:"SU", 1:"MO", 2:"TU", 3:"WE", 4:"TH", 5:"FR", 6:"SA" };
+      var byday = DAY_ORDER.filter(function(dn){ return sch[dn]; }).map(function(dn){ return codes[dn]; }).join(",") || "MO,WE,TH";
+      var toFirst = 0; var probe = new Date();
+      while(!sch[probe.getDay()] && toFirst<7){ probe = addDays(probe,1); toFirst++; }
+      var ics = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Gym Tracker//EN",
+        "BEGIN:VEVENT","UID:gymtracker-"+Date.now()+"@local","DTSTAMP:"+stamp(0,9),
+        "DTSTART:"+stamp(toFirst,16),"DTEND:"+stamp(toFirst,17),
+        "RRULE:FREQ=WEEKLY;BYDAY="+byday,
+        "SUMMARY:Gym Tracker — today's quest is waiting",
+        "DESCRIPTION:Open Gym Tracker and check off today's session — quests follow the workout days you picked in My Schedule.",
+        "BEGIN:VALARM","TRIGGER:PT0M","ACTION:DISPLAY","DESCRIPTION:Gym quest time","END:VALARM",
+        "END:VEVENT","END:VCALENDAR"].join("\r\n");
+      downloadText("gym-tracker-reminders.ics", ics, "text/calendar");
+      toast("Reminder file downloaded — open it to add to your calendar.");
+    }
+
+    /* ---------------- tabs / render ---------------- */
+    var TAB_DEFS = [
+      { id:"quest",    label:"Quest",    icon:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4.5 13.5H11L9.5 22 19 10h-6.5L13 2z"/></svg>' },
+      { id:"progress", label:"Progress", icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 19V11M9.5 19V5M15 19v-7M20 19H3"/></svg>' },
+      { id:"coach",    label:"Coach",    icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4H21l-1.4 3.6h-5.1zM14.5 7.6a6.8 6.8 0 1 0 3.4 6"/><circle cx="10.7" cy="14.6" r="1.5" fill="currentColor" stroke="none"/></svg>' },
+      { id:"more",     label:"More",     icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.6"/></svg>' }
+    ];
+    function initTabs(){
+      document.querySelectorAll(".tab").forEach(function(btn, i){
+        var def = TAB_DEFS[i];
+        btn.innerHTML = def.icon + "<span>"+def.label+"</span>";
+        btn.addEventListener("click", function(){
+          activeTab = def.id;
+          document.querySelectorAll(".tab").forEach(function(b){ b.classList.toggle("on", b.getAttribute("data-tab")===activeTab); });
+          ["quest","progress","coach","more"].forEach(function(t){
+            document.getElementById("view-"+t).classList.toggle("hidden", t!==activeTab);
+          });
+          window.scrollTo(0,0);
+          renderAll();
+        });
+      });
+    }
+    function renderAll(){
+      if(!state.profile) return;
+      renderHUD(); renderQuest(); renderProgress(); renderCoach(); renderMore();
+    }
+
+    /* ---------------- service worker (works when hosted with sw.js alongside) ---------------- */
+    if("serviceWorker" in navigator && window.self===window.top){
+      window.addEventListener("load", function(){
+        navigator.serviceWorker.register("sw.js").catch(function(){ /* not hosted with sw.js yet — fine */ });
+      });
+    }
+
+    /* ---------------- init ---------------- */
+    initTabs();
+    renderGate();
+    </script>
+  </body>
+</html>
