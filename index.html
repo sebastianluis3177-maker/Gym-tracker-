@@ -371,6 +371,80 @@
       T: { label:"Trainer Session", dayName:"Thursday", sub:"Private session with your personal trainer — just show up and check in." }
     };
     var DEFAULT_SCHEDULE = { 1:"A", 3:"B", 4:"T" }; // JS weekday keys — Sebastian's days (Mon/Wed/Thu). Every user can override theirs in More → My Schedule.
+
+    /* ---------------- age-band starter routines (suggestions for new users) ----------------
+       General, safe full-body fundamentals with rest days built in. These are
+       suggestions only — they never replace Session A / B, a sport program,
+       or a trainer's plan. */
+    var ROUTINE_BANDS = [
+      { max:12, range:"12 & under", title:"Bodyweight Foundations",
+        days:"2–3 days a week, never two days in a row — e.g. Mon / Wed / Fri. Every other day is a rest or play day. Bodyweight only, with a parent or coach nearby.",
+        exercises:[
+          { name:"Bodyweight Squat",    sets:3, reps:"8–12",      load:"bodyweight", tip:"Feet shoulder-width, sit your hips down and back, chest tall. Stand all the way up each rep." },
+          { name:"Incline Push-Up",     sets:3, reps:"6–12",      load:"hands on a wall, counter, or sturdy chair", tip:"Body in one straight line. The higher your hands, the easier it is — pick a height where the last two reps are a challenge but your form holds." },
+          { name:"Glute Bridge",        sets:3, reps:"10–12",     load:"bodyweight", tip:"Heels down, drive your hips up and squeeze your glutes for a second at the top." },
+          { name:"Bird Dog",            sets:2, reps:"6 / side",  load:"bodyweight", tip:"On all fours, reach one arm and the opposite leg out long. Hips stay level — no wobbling." },
+          { name:"Dead Bug",            sets:2, reps:"8 / side",  load:"bodyweight", tip:"Lower back pressed into the floor the whole time. Extend opposite arm and leg slowly." },
+          { name:"Standing Calf Raise", sets:2, reps:"12–15",     load:"bodyweight", tip:"Full range: heels drop below the step, then press all the way up onto your toes. Hold something for balance." },
+          { name:"Plank",               sets:3, reps:"20–30 sec", load:"bodyweight", tip:"Forearms down, one straight line from head to heels. A shorter perfect plank beats a long sloppy one." }
+        ] },
+      { max:15, range:"13–15", title:"Light Dumbbell Full-Body Starter",
+        days:"3 days a week with a rest day between sessions — e.g. Mon / Wed / Fri. Start light: every rep should look controlled. Add weight only when all reps are clean.",
+        exercises:[
+          { name:"Goblet Squat",             sets:3, reps:"8–10",     load:"start ~10–15 lb", tip:"One dumbbell at your chest, sit your hips down between your heels, knees tracking over your toes." },
+          { name:"Dumbbell Floor Press",     sets:3, reps:"8–10",     load:"start ~10 lb each", tip:"Lying on the floor, press the dumbbells up from chest height. Your upper arms touching the floor each rep keeps your shoulders safe." },
+          { name:"One-Arm Dumbbell Row",     sets:3, reps:"10 / side", load:"start ~10–15 lb", tip:"Free hand on a bench or chair, back flat. Pull the dumbbell to your hip and squeeze your back at the top." },
+          { name:"Dumbbell Romanian Deadlift", sets:2, reps:"10",     load:"start ~10 lb each — technique first", tip:"Soft knees, hinge at the hips, dumbbells slide down your thighs, back flat. You should feel hamstrings, not lower back." },
+          { name:"Glute Bridge",             sets:3, reps:"12",       load:"bodyweight", tip:"Drive through your heels, squeeze your glutes hard for a second at the top." },
+          { name:"Dead Bug",                 sets:2, reps:"8 / side", load:"bodyweight", tip:"Lower back stays glued to the floor. Slow and controlled wins." },
+          { name:"Plank",                    sets:3, reps:"30 sec",   load:"bodyweight", tip:"One straight line, glutes and core squeezed, breathe steady." }
+        ] },
+      { max:17, range:"16–17", title:"Full-Body Dumbbell Starter",
+        days:"3 days a week with a rest day between sessions — e.g. Mon / Wed / Fri. Moderate weights: the last two reps should be work, never a grind.",
+        exercises:[
+          { name:"Goblet Squat",              sets:3, reps:"8–10",     load:"start ~15–20 lb", tip:"Dumbbell at your chest, hips down between your heels, drive up through your whole foot." },
+          { name:"Dumbbell Bench Press",      sets:3, reps:"8–10",     load:"start ~15 lb each", tip:"Lower slow until your upper arms are about parallel to the floor, then press up. Feet planted, shoulder blades squeezed into the bench." },
+          { name:"One-Arm Dumbbell Row",      sets:3, reps:"10 / side", load:"start ~20 lb", tip:"Back flat like a table, pull to your hip — not your chest. No twisting." },
+          { name:"Dumbbell Romanian Deadlift", sets:3, reps:"10",      load:"start ~20 lb each", tip:"Hinge at the hips, back flat the whole time. Hamstrings load up, not your lower back." },
+          { name:"Dumbbell Overhead Press",   sets:2, reps:"8–10",     load:"start ~10 lb each", tip:"Press straight up, brace your core and squeeze your glutes so your lower back doesn't arch." },
+          { name:"Plank",                     sets:3, reps:"45 sec",   load:"bodyweight", tip:"One straight line from head to heels, breathe steady." }
+        ] },
+      { max:999, range:"18+", title:"Full-Body Strength Starter",
+        days:"3–4 days a week, with at least one rest day between sessions that repeat the same work — e.g. Mon / Wed / Fri, or upper/lower splits once you're consistent.",
+        exercises:[
+          { name:"Goblet Squat",              sets:3, reps:"8–10",     load:"moderate — last 2 reps are work", tip:"Dumbbell at your chest, hips down between your heels, knees tracking over your toes." },
+          { name:"Dumbbell Bench Press",      sets:3, reps:"8–10",     load:"moderate", tip:"Controlled descent, press up strong. Feet planted, shoulder blades set into the bench." },
+          { name:"Bent-Over Dumbbell Row",    sets:3, reps:"10",       load:"moderate", tip:"Hinge to about 45°, back flat, row both dumbbells to your ribs and pause at the top." },
+          { name:"Dumbbell Romanian Deadlift", sets:3, reps:"10",      load:"moderate", tip:"Hip hinge with a flat back; feel the hamstrings load, not the lower back." },
+          { name:"Dumbbell Overhead Press",   sets:3, reps:"8–10",     load:"moderate", tip:"Press straight up with a braced core — no leaning back." },
+          { name:"Dumbbell Lateral Raise",    sets:2, reps:"12–15",    load:"light", tip:"Slight elbow bend, raise to shoulder height, slow on the way down. If you're swinging, go lighter." },
+          { name:"Plank",                     sets:3, reps:"45 sec",   load:"bodyweight", tip:"One straight line, glutes and core squeezed." }
+        ] }
+    ];
+    function routineForAge(age){
+      if(!age) return null;
+      for(var i=0;i<ROUTINE_BANDS.length;i++){ if(age<=ROUTINE_BANDS[i].max) return ROUTINE_BANDS[i]; }
+      return ROUTINE_BANDS[ROUTINE_BANDS.length-1];
+    }
+    function starterRoutineHTML(){
+      var band = routineForAge(state.profile && state.profile.age);
+      var inner;
+      if(!band){
+        inner = '<p class="muted">Add your age under <b style="color:var(--ink)">Profile</b> below and the app suggests a starter routine matched to your age — the actual exercises, sets and reps, so you have a real plan from day one instead of guessing.</p>';
+      } else {
+        inner = '<p><b>'+esc(band.title)+'</b> · suggested for ages '+esc(band.range)+'</p>'+
+          '<p class="muted small" style="margin-top:4px">'+esc(band.days)+'</p>'+
+          band.exercises.map(function(e){
+            return '<div style="padding:10px 0;border-top:1px solid var(--line)">'+
+              '<div style="font-weight:700">'+esc(e.name)+'</div>'+
+              '<div class="small" style="margin-top:2px">'+e.sets+' sets × '+esc(e.reps)+' · '+esc(e.load)+'</div>'+
+              '<div class="muted small" style="margin-top:2px">'+esc(e.tip)+'</div></div>';
+          }).join("")+
+          '<p class="muted small" style="margin-top:10px">Already following a plan — Session A/B here in the app, a sport program, or a trainer\'s plan? Stick with that. This is a starter suggestion for day one, not a replacement.</p>';
+      }
+      return '<h2 class="sect-title">Starter Routine For Your Age</h2><div class="card" style="margin-top:10px">'+inner+
+        '<p class="small" style="margin-top:12px"><b>Standing rule:</b> if something hurts, stop — don\'t push through pain — and tell a parent or coach.</p></div>';
+    }
     var DAY_ORDER = [1,2,3,4,5,6,0]; // Monday first
     var DAY_NAMES = { 0:"Sunday", 1:"Monday", 2:"Tuesday", 3:"Wednesday", 4:"Thursday", 5:"Friday", 6:"Saturday" };
 
@@ -425,6 +499,28 @@
       return d.toLocaleDateString(undefined,{weekday:"short", month:"short", day:"numeric"});
     }
     function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+
+    /* ---------------- height (recorded stat, feet + inches) ---------------- */
+    function heightLabel(totalIn){
+      if(!totalIn || isNaN(totalIn)) return "";
+      return Math.floor(totalIn/12)+"'"+(totalIn%12)+'"';
+    }
+    function heightInputsHTML(prefix, currentIn){
+      var ft = currentIn ? Math.floor(currentIn/12) : "";
+      var inch = currentIn ? (currentIn%12) : "";
+      return '<div style="display:flex;gap:10px">'+
+        '<input class="text-in" id="'+prefix+'Ft" type="number" inputmode="numeric" min="3" max="8" step="1" placeholder="Feet" value="'+ft+'" aria-label="Height in feet">'+
+        '<input class="text-in" id="'+prefix+'In" type="number" inputmode="numeric" min="0" max="11" step="1" placeholder="Inches" value="'+inch+'" aria-label="Height in inches">'+
+      '</div>';
+    }
+    function readHeightInputs(prefix){
+      var ftV = document.getElementById(prefix+"Ft").value.trim();
+      var inV = document.getElementById(prefix+"In").value.trim();
+      if(ftV==="" && inV==="") return { ok:true, heightIn:null };
+      var ft = parseInt(ftV,10), inch = inV==="" ? 0 : parseInt(inV,10);
+      if(isNaN(ft) || isNaN(inch) || ft<3 || ft>8 || inch<0 || inch>11) return { ok:false };
+      return { ok:true, heightIn: ft*12 + inch };
+    }
 
     /* ---------------- schedule picker (choose your own workout days) ---------------- */
     function schedulePickerHTML(prefix, current){
@@ -946,6 +1042,11 @@
             '<input class="text-in" id="pfName" type="text" maxlength="24" placeholder="e.g. Sebastian" autocomplete="off"></div>'+
             '<div style="margin-top:12px"><label class="flabel" for="pfPin">Optional 4-digit PIN (locks the app on this phone)</label>'+
             '<input class="text-in" id="pfPin" type="password" inputmode="numeric" maxlength="4" placeholder="Leave blank for no PIN" autocomplete="off"></div>'+
+            '<div style="margin-top:12px"><label class="flabel" for="pfAge">Your age (optional)</label>'+
+            '<input class="text-in" id="pfAge" type="number" inputmode="numeric" min="5" max="100" step="1" placeholder="e.g. 13" autocomplete="off"></div>'+
+            '<div style="margin-top:12px"><label class="flabel">Your height (optional)</label>'+
+            heightInputsHTML("pf", null)+
+            '<p class="muted small" style="margin-top:4px">Feet and inches. You can add or change height and age anytime under More → Profile.</p></div>'+
             '<div style="margin-top:16px"><label class="flabel">Your workout days</label>'+
             '<p class="muted small">Pick what happens each day: Session A, Session B, a trainer session (check-in only — your trainer runs it), or rest. Not everybody has a trainer — that\'s fine, just leave those days on a session or rest. You can change this anytime under More → My Schedule.</p>'+
             schedulePickerHTML("pf", null)+'</div>'+
@@ -958,10 +1059,14 @@
           var pin = document.getElementById("pfPin").value.trim();
           if(!name){ toast("Add your name first."); return; }
           if(pin && !/^\d{4}$/.test(pin)){ toast("PIN must be exactly 4 digits — or leave it blank."); return; }
+          var ht = readHeightInputs("pf");
+          if(!ht.ok){ toast("Height looks off — feet 3–8, inches 0–11. Or leave both blank."); return; }
+          var ageV = parseInt(document.getElementById("pfAge").value, 10);
+          var age = (!isNaN(ageV) && ageV>=5 && ageV<=100) ? ageV : null;
           var sch = readSchedulePicker("pf");
           if(!sch){ toast("Pick at least one workout day — that's your schedule."); return; }
           state.schedule = sch;
-          state.profile = { name:name, pin: pin || null };
+          state.profile = { name:name, pin: pin || null, heightIn: ht.heightIn, age: age };
           save(); unlocked = true;
           toast("Profile created. Let's get to work, "+name+".");
           enterApp();
@@ -1224,6 +1329,29 @@
       var m = sortedMeasures();
       var latestM = m.length? m[m.length-1] : null;
 
+      /* BMI — number + own trend only, no adult category labels */
+      var heightIn = (state.profile && state.profile.heightIn) ? state.profile.heightIn : null;
+      var bmiHTML;
+      if(heightIn && latestW){
+        var bmiNow = 703 * latestW.lbs / (heightIn*heightIn);
+        var bmiDiff = null;
+        if(w.length>=2 && firstW){
+          var bmiFirst = 703 * firstW.lbs / (heightIn*heightIn);
+          bmiDiff = Math.round((bmiNow-bmiFirst)*10)/10;
+        }
+        bmiHTML = '<div style="margin-top:16px;border-top:1px solid var(--line);padding-top:14px">'+
+          '<div class="stat-grid" style="margin-top:0">'+
+          '<div class="stat"><div class="v">'+bmiNow.toFixed(1)+'</div><div class="k">BMI (current)</div></div>'+
+          '<div class="stat"><div class="v">'+(bmiDiff===null?"—":(bmiDiff>0?"+":"")+bmiDiff.toFixed(1))+'</div><div class="k">Change since first weigh-in</div></div>'+
+          '<div class="stat"><div class="v">'+esc(heightLabel(heightIn))+'</div><div class="k">Height</div></div></div>'+
+          '<p class="muted small" style="margin-top:10px">For teens, BMI is read against age-based percentiles, not adult cutoffs — this is just for tracking your own trend, and a doctor or coach can tell you what it means for you.</p></div>';
+      } else {
+        bmiHTML = '<div style="margin-top:16px;border-top:1px solid var(--line);padding-top:14px"><p class="muted small"><b style="color:var(--ink)">BMI:</b> '+
+          (!heightIn && !latestW ? 'add your height under More → Profile and log a weigh-in above, and your BMI shows up here.' :
+           !heightIn ? 'add your height under More → Profile, and your BMI shows up here.' :
+           'log a weigh-in above, and your BMI shows up here.')+'</p></div>';
+      }
+
       var html = '<h2 class="sect-title">Progress Score</h2>'+
       '<div class="card" style="margin-top:10px"><div style="display:flex;gap:16px;align-items:flex-start">'+
         '<div class="score-num">'+s.total+'</div>'+
@@ -1248,6 +1376,7 @@
         (w.length? '<table class="hist"><tr><th>Date</th><th>Weight</th><th></th></tr>'+ w.slice(-5).reverse().map(function(p){
             return '<tr><td>'+esc(prettyDate(p.date))+'</td><td>'+p.lbs+' lb</td><td style="text-align:right"><button type="button" class="tip-btn" data-delw="'+p.date+':'+p.lbs+'">Delete</button></td></tr>';
           }).join("")+'</table>' : "")+
+        bmiHTML+
       '</div>';
 
       /* physique rating — progress over time, after Bodyweight, before Coach's Corner content */
@@ -1428,6 +1557,9 @@
         '<div class="btn-row"><button class="btn" type="button" id="schedSave">Save my schedule</button></div>'+
       '</div>';
 
+      /* starter routine matched to age */
+      html += starterRoutineHTML();
+
       /* share */
       html += '<h2 class="sect-title">Share With Friends</h2><div class="card" style="margin-top:10px">'+
         '<p>Send the link to this app to a friend and they get the exact same tracker — with <b>their own</b> profile, XP and streaks on <b>their own</b> phone.</p>'+
@@ -1474,6 +1606,12 @@
       /* profile */
       html += '<h2 class="sect-title">Profile</h2><div class="card" style="margin-top:10px">'+
         '<p>Signed in as <b>'+esc(state.profile.name)+'</b> · Level '+levelFor(computeXP()).level+' '+levelFor(computeXP()).title+'</p>'+
+        '<p style="margin-top:6px">Age: <b>'+(state.profile.age ? state.profile.age : 'not set yet')+'</b> · Height: <b>'+(state.profile.heightIn ? esc(heightLabel(state.profile.heightIn)) : 'not set yet')+'</b></p>'+
+        '<div style="margin-top:10px"><label class="flabel" for="pfAgeEdit">Your age (roughly is fine)</label>'+
+        '<input class="text-in" id="pfAgeEdit" type="number" inputmode="numeric" step="1" placeholder="e.g. 13" value="'+(state.profile.age || "")+'"></div>'+
+        '<div style="margin-top:10px"><label class="flabel">Your height — feet &amp; inches</label>'+
+        heightInputsHTML("ht", state.profile.heightIn || null)+'</div>'+
+        '<div class="btn-row"><button class="btn secondary" type="button" id="htSave">Save age &amp; height</button></div>'+
         '<p class="muted small" style="margin-top:6px">Your data lives only in this browser on this device. Switching phones or clearing browser data starts you fresh — that\'s the trade-off of a free, private, no-account app.</p>'+
         '<div class="btn-row"><button class="btn secondary" type="button" id="lockBtn">'+(state.profile.pin?"Lock app":"Sign out view")+'</button>'+
         '<button class="btn danger" type="button" id="wipeBtn">Erase everything</button></div>'+
@@ -1491,6 +1629,14 @@
           if(k>=todayKey() && !dayStarted(k) && state.days[k].type !== planFor(parseKey(k))) delete state.days[k];
         });
         save(); toast("Schedule saved — quests and streaks follow your days now."); renderAll();
+      });
+      document.getElementById("htSave").addEventListener("click", function(){
+        var ht = readHeightInputs("ht");
+        if(!ht.ok){ toast("Height looks off — feet 3–8, inches 0–11."); return; }
+        var ageV = parseInt(document.getElementById("pfAgeEdit").value, 10);
+        state.profile.age = (!isNaN(ageV) && ageV>=5 && ageV<=100) ? ageV : null;
+        state.profile.heightIn = ht.heightIn;
+        save(); toast("Saved."); renderAll();
       });
       document.getElementById("icsBtn").addEventListener("click", downloadICS);
       document.getElementById("dlSw").addEventListener("click", function(){ downloadText("sw.js", SW_CODE, "text/javascript"); });
